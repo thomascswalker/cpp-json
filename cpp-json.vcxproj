@@ -133,6 +133,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inspection.h" />
     <ClInclude Include="json.h" />
   </ItemGroup>
   <ItemGroup>

@@ -6,18 +6,14 @@
 #include <string>
 #include <vector>
 
-// Forward declaration
-class JsonObject;
+#include "inspection.h"
 
-template<typename Base, typename T>
-inline bool isInstance(const T obj)
-{
-    auto ptr = &obj;
-    return static_cast<const Base*>(ptr) != nullptr;
-}
+// Forward declaration
+class json;
+typedef json json_t;
 
 // Values
-enum ValueType
+enum value_type
 {
     Null,           // nullptr
     Bool,           // true, false
@@ -31,7 +27,7 @@ enum ValueType
 /// <summary>
 /// Base class for all JSON value types.
 /// </summary>
-class Value
+class base_value
 {
 public:
     /// <summary>
@@ -40,102 +36,103 @@ public:
     /// <returns>The string-formatted value.</returns>
     virtual std::string format() = 0;
 };
+typedef base_value value_t;
 
-class NullValue
-    : public Value
+class null_value
+    : public value_t
 {
     void* m_value = nullptr;
 public:
-    NullValue() { };
+    null_value() { };
     std::string format();
 };
 
-class BoolValue
-    : public Value
+class bool_value
+    : public value_t
 {
     bool m_value;
 public:
-    BoolValue(bool value)
+    bool_value(bool value)
         : m_value(value) { };
     bool value();
     std::string format();
 };
 
-class IntValue
-    : public Value
+class int_value
+    : public value_t
 {
     int m_value;
 public:
-    IntValue(int value)
+    int_value(int value)
         : m_value(value) { };
     int value();
     std::string format();
 };
 
-class DoubleValue
-    : public Value
+class double_value
+    : public value_t
 {
     double m_value;
 public:
-    DoubleValue(double value)
+    double_value(double value)
         : m_value(value) { };
     double value();
     std::string format();
 };
 
-class StringValue
-    : public Value
+class string_value
+    : public value_t
 {
     std::string m_value;
 public:
-    StringValue(std::string value)
+    string_value(std::string value)
         : m_value(value) { };
     std::string value();
     std::string format();
 };
 
-class ArrayValue
-    : public Value
+class array_value
+    : public value_t
 {
-    std::vector<JsonObject> m_value;
+    std::vector<json> m_value;
 public:
-    ArrayValue(const std::vector<JsonObject>& value);
-    std::vector<JsonObject> value();
+    array_value(const std::vector<json>& value);
+    std::vector<json> value();
     std::string format();
 };
 
 /// <summary>
 /// Base JSON object. Contains a wrapper for each possible value type, with constructors and accessors for each.
 /// </summary>
-class JsonObject
+class json
 {
-    std::unique_ptr<Value> m_value;
-    ValueType m_type;
+    std::unique_ptr<value_t> m_value;
+    value_type m_type;
 
 public:
     // Constructors
-    JsonObject();
-    JsonObject(bool value);
-    JsonObject(int value);
-    JsonObject(double value);
-    JsonObject(const std::string& value);
-    JsonObject(const std::vector<JsonObject>& value);
-    ~JsonObject() { };
+    json();
+    json(bool value);
+    json(int value);
+    json(double value);
+    json(const std::string& value);
+    json(const std::vector<json>& value);
+    ~json() { };
 
     // Methods
-    ValueType type() { return m_type; }
+    value_type type() { return m_type; }
 
-    bool getBool();
-    int getInt();
-    double getDouble();
-    std::string getString();
+    bool get_bool();
+    int get_int();
+    double get_double();
+    std::string get_string();
     std::string format();
 
     // Operators
-    friend std::ostream& operator << (std::ostream& o, JsonObject& v);
+    friend std::ostream& operator << (std::ostream& o, json& v);
 };
 
-inline std::ostream& operator << (std::ostream& o, JsonObject& j)
+std::ostream& operator << (std::ostream& o, json& j)
 {
     return o << j.format();
 }

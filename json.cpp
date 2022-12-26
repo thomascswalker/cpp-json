@@ -1,128 +1,128 @@
 #include "json.h"
 
 // Null
-std::string NullValue::format()
+std::string null_value::format()
 {
     return "Null";
 }
 
 // Bool
-bool BoolValue::value()
+bool bool_value::value()
 {
     return m_value;
 }
 
-std::string BoolValue::format()
+std::string bool_value::format()
 {
     return (m_value == true ? std::string("true") : std::string("false"));
 }
 
 // Int
-int IntValue::value()
+int int_value::value()
 {
     return m_value;
 }
 
-std::string IntValue::format()
+std::string int_value::format()
 {
     return std::to_string(m_value);
 }
 
 // Double
-double DoubleValue::value()
+double double_value::value()
 {
     return m_value;
 }
 
-std::string DoubleValue::format()
+std::string double_value::format()
 {
     return std::to_string(m_value);
 }
 
 // String
-std::string StringValue::value()
+std::string string_value::value()
 {
     return m_value;
 }
 
-std::string StringValue::format()
+std::string string_value::format()
 {
     return m_value;
 }
 
 // Array
-ArrayValue::ArrayValue(const std::vector<JsonObject>& value)
+array_value::array_value(const std::vector<json>& value)
 {
-    for (const JsonObject& v : value)
+    for (const json& v : value)
     {
         m_value.push_back(&v);
     }
 };
 
-std::vector<JsonObject> ArrayValue::value()
+std::vector<json> array_value::value()
 {
     return m_value;
 }
 
-std::string ArrayValue::format()
+std::string array_value::format()
 {
     std::string arrayString = "[]";
     return arrayString;
 }
 
 // JSON Object
-JsonObject::JsonObject()
+json::json()
 {
     m_value = nullptr;
     m_type = Null;
 }
-JsonObject::JsonObject(bool value)
+json::json(bool value)
 {
-    m_value = std::make_unique<BoolValue>(value);
+    m_value = std::make_unique<bool_value>(value);
     m_type = Bool;
 }
-JsonObject::JsonObject(int value)
+json::json(int value)
 {
-    m_value = std::make_unique<IntValue>(value);
+    m_value = std::make_unique<int_value>(value);
     m_type = Int;
 }
-JsonObject::JsonObject(double value)
+json::json(double value)
 {
-    m_value = std::make_unique<DoubleValue>(value);
+    m_value = std::make_unique<double_value>(value);
     m_type = Double;
 }
-JsonObject::JsonObject(const std::string& value)
+json::json(const std::string& value)
 {
-    m_value = std::make_unique<StringValue>(value);
+    m_value = std::make_unique<string_value>(value);
     m_type = String;
 }
-JsonObject::JsonObject(const std::vector<JsonObject>& value)
+json::json(const std::vector<json>& value)
 {
-    m_value = std::make_unique<ArrayValue>(value);
+    m_value = std::make_unique<array_value>(value);
     m_type = Array;
 }
 
-bool JsonObject::getBool()
+bool json::get_bool()
 {
-    return static_cast<BoolValue*>(m_value.get())->value();
+    return static_cast<bool_value*>(m_value.get())->value();
 }
 
-int JsonObject::getInt()
+int json::get_int()
 {
-    return static_cast<IntValue*>(m_value.get())->value();
+    return static_cast<int_value*>(m_value.get())->value();
 }
 
-double JsonObject::getDouble()
+double json::get_double()
 {
-    return static_cast<DoubleValue*>(m_value.get())->value();
+    return static_cast<double_value*>(m_value.get())->value();
 }
 
-std::string JsonObject::getString()
+std::string json::get_string()
 {
-    return static_cast<StringValue*>(m_value.get())->value();
+    return static_cast<string_value*>(m_value.get())->value();
 }
 
-std::string JsonObject::format()
+std::string json::format()
 {
     return m_value.get()->format();
 }
