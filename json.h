@@ -47,10 +47,7 @@ class NullValue
     void* m_value = nullptr;
 public:
     NullValue() { };
-    std::string format()
-    {
-        return "Null";
-    }
+    std::string format();
 };
 
 class BoolValue
@@ -60,15 +57,8 @@ class BoolValue
 public:
     BoolValue(bool value)
         : m_value(value) { };
-    bool value()
-    {
-        return m_value;
-    }
-
-    std::string format()
-    {
-        return (m_value == true ? std::string("true") : std::string("false"));
-    }
+    bool value();
+    std::string format();
 };
 
 class IntValue
@@ -78,15 +68,8 @@ class IntValue
 public:
     IntValue(int value)
         : m_value(value) { };
-    int value()
-    {
-        return m_value;
-    }
-
-    std::string format()
-    {
-        return std::to_string(m_value);
-    }
+    int value();
+    std::string format();
 };
 
 class DoubleValue
@@ -96,15 +79,8 @@ class DoubleValue
 public:
     DoubleValue(double value)
         : m_value(value) { };
-    double value()
-    {
-        return m_value;
-    }
-
-    std::string format()
-    {
-        return std::to_string(m_value);
-    }
+    double value();
+    std::string format();
 };
 
 class StringValue
@@ -114,15 +90,8 @@ class StringValue
 public:
     StringValue(std::string value)
         : m_value(value) { };
-    std::string value()
-    {
-        return m_value;
-    }
-
-    std::string format()
-    {
-        return m_value;
-    }
+    std::string value();
+    std::string format();
 };
 
 class ArrayValue
@@ -130,24 +99,9 @@ class ArrayValue
 {
     std::vector<JsonObject> m_value;
 public:
-    ArrayValue(const std::vector<JsonObject> value)
-    {
-        for (int i = 0; i < value.size(); i++)
-        {
-            m_value.push_back(value[i]);
-        }
-    };
-
-    std::vector<JsonObject> value()
-    {
-        return m_value;
-    }
-
-    std::string format()
-    {
-        std::string arrayString = "[]";
-        return arrayString;
-    }
+    ArrayValue(const std::vector<JsonObject>& value);
+    std::vector<JsonObject> value();
+    std::string format();
 };
 
 /// <summary>
@@ -160,65 +114,22 @@ class JsonObject
 
 public:
     // Constructors
-    JsonObject()
-    {
-        m_value = nullptr;
-        m_type = Null;
-    }
-    JsonObject(bool value)
-    {
-        m_value = std::make_unique<BoolValue>(value);
-        m_type = Bool;
-    }
-    JsonObject(int value)
-    {
-        m_value = std::make_unique<IntValue>(value);
-        m_type = Int;
-    }
-    JsonObject(double value)
-    {
-        m_value = std::make_unique<DoubleValue>(value);
-        m_type = Double;
-    }
-    JsonObject(const std::string& value)
-    {
-        m_value = std::make_unique<StringValue>(value);
-        m_type = String;
-    }
-    JsonObject(const std::vector<JsonObject>& value)
-    {
-        m_value = std::make_unique<ArrayValue>(value);
-        m_type = Array;
-    }
+    JsonObject();
+    JsonObject(bool value);
+    JsonObject(int value);
+    JsonObject(double value);
+    JsonObject(const std::string& value);
+    JsonObject(const std::vector<JsonObject>& value);
     ~JsonObject() { };
 
     // Methods
     ValueType type() { return m_type; }
 
-    bool getBool()
-    {
-        return static_cast<BoolValue*>(m_value.get())->value();
-    }
-
-    int getInt()
-    {
-        return static_cast<IntValue*>(m_value.get())->value();
-    }
-
-    double getDouble()
-    {
-        return static_cast<DoubleValue*>(m_value.get())->value();
-    }
-
-    std::string getString()
-    {
-        return static_cast<StringValue*>(m_value.get())->value();
-    }
-
-    std::string format()
-    {
-        return m_value.get()->format();
-    }
+    bool getBool();
+    int getInt();
+    double getDouble();
+    std::string getString();
+    std::string format();
 
     // Operators
     friend std::ostream& operator << (std::ostream& o, JsonObject& v);
