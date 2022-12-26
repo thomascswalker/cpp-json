@@ -1,0 +1,7 @@
+{
+    "Key 1": 5,
+    "Key 2": true,
+    "Key 3": {
+        "Key 4": "String"
+    }
+}
