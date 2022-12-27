@@ -53,9 +53,10 @@ std::string string_value::format()
 // Array
 array_value::array_value(const std::vector<json> value)
 {
+    m_value.clear();
     for (const json& v : value)
     {
-        m_value.push_back(&v);
+        m_value.emplace_back(v);
     }
 };
 
@@ -66,12 +67,12 @@ std::vector<json> array_value::value()
 
 std::string array_value::format()
 {
-    std::string arrayString = "[";
+    std::string arrayString = "[\n";
     for (auto& v : m_value)
     {
         arrayString += v.format() + ",";
     }
-    arrayString += "]";
+    arrayString += "\n]";
     return arrayString;
 }
 
@@ -139,5 +140,10 @@ std::vector<json> json::get_array() const
 
 std::string json::format()
 {
-    return m_value.get()->format();
+    if (m_value.get() != nullptr)
+    {
+        return m_value.get()->format();
+    }
+
+    return "NULL";
 }

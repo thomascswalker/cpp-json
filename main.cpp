@@ -22,20 +22,25 @@ int main()
     std::cout << j4 << std::endl;
 
     std::vector<json> arr1;
-    arr1.emplace_back(false);
+    arr1.emplace_back(true);
     arr1.emplace_back(true);
     arr1.emplace_back(false);
-    arr1.emplace_back(true);
-    arr1.emplace_back(false);
-    arr1.emplace_back(true);
-
-    std::cout << "Constructing JSON Array" << std::endl;
     json jarr1(arr1);
-    std::cout << jarr1 << std::endl;
 
-    //std::vector<double> arr2{ 3.14159, 0.00001, 99.9999 };
-    //json jarr2(arr2);
-    //std::cout << jarr2 << std::endl;
+    std::vector<json> arr2;
+    arr2.emplace_back(false);
+    arr2.emplace_back(false);
+    arr2.emplace_back(true);
+    json jarr2(arr2);
+
+    std::vector<json> arr3;
+    arr3.emplace_back(jarr1);
+    arr3.emplace_back(jarr2);
+    json jarr3(arr3);
+
+    std::cout << jarr1 << std::endl;
+    std::cout << jarr2 << std::endl;
+    std::cout << jarr3 << std::endl;
 
     return 0;
 }

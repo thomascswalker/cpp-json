@@ -172,9 +172,27 @@ public:
         {
             case (Bool):
             {
-                //std::cout << &*this << " = " << other.get_bool() << std::endl;
                 m_value = std::make_unique<bool_value>(other.get_bool());
-                //std::cout << static_cast<bool_value*>(m_value.get())->value() << std::endl;
+                break;
+            }
+            case (Int):
+            {
+                m_value = std::make_unique<int_value>(other.get_int());
+                break;
+            }
+            case (Double):
+            {
+                m_value = std::make_unique<double_value>(other.get_double());
+                break;
+            }
+            case (String):
+            {
+                m_value = std::make_unique<string_value>(other.get_string());
+                break;
+            }
+            case (Array):
+            {
+                m_value = std::make_unique<array_value>(other.get_array());
                 break;
             }
         }
