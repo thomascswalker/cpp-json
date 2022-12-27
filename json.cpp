@@ -4,13 +4,40 @@ JSON_NAMESPACE_OPEN
 
 std::string get_indent(int indent = 0)
 {
-    return std::string(indent * JSON_TAB_SIZE, ' ');
+    auto size = indent * 4;
+    return std::string(size, ' ');
+}
+
+std::string format_line(const std::string& value, int indent, bool end)
+{
+    std::string line;
+    line += get_indent(indent);
+    line += value;
+    if (!end)
+    {
+        line += ",";
+    }
+    line += "\n";
+    return line;
+}
+
+std::string format_dict(const std::string& key, const std::string& value, int indent, bool end)
+{
+    std::string line;
+    line += get_indent(indent);
+    line += "\"" + key + "\"" + ": " + value;
+    if (!end)
+    {
+        line += ",";
+    }
+    line += "\n";
+    return line;
 }
 
 // Null
-std::string null_value::format(int indent = 0)
+std::string null_value::format()
 {
-    return get_indent(indent) + "Null";
+    return "Null";
 }
 
 // Bool
@@ -19,10 +46,10 @@ bool bool_value::value()
     return m_value;
 }
 
-std::string bool_value::format(int indent = 0)
+std::string bool_value::format()
 {
     std::string bool_string(m_value == true ? std::string("true") : std::string("false"));
-    return get_indent(indent) + bool_string;
+    return bool_string;
 }
 
 // Int
@@ -31,9 +58,9 @@ int int_value::value()
     return m_value;
 }
 
-std::string int_value::format(int indent = 0)
+std::string int_value::format()
 {
-    return get_indent(indent) + std::to_string(m_value);
+    return std::to_string(m_value);
 }
 
 // Double
@@ -42,9 +69,9 @@ double double_value::value()
     return m_value;
 }
 
-std::string double_value::format(int indent = 0)
+std::string double_value::format()
 {
-    return get_indent(indent) + std::to_string(m_value);
+    return std::to_string(m_value);
 }
 
 // String
@@ -53,9 +80,9 @@ std::string string_value::value()
     return m_value;
 }
 
-std::string string_value::format(int indent = 0)
+std::string string_value::format()
 {
-    return get_indent(indent) + m_value;
+    return "\"" + m_value + "\"";
 }
 
 // Array
@@ -73,27 +100,20 @@ array_t array_value::value()
     return m_value;
 }
 
-std::string array_value::format(int indent = 0)
+std::string array_value::format()
 {
-    std::string arrayString = get_indent(indent) + "[\n";
-    indent++;
-    int count = 0;
+    std::string array_string = "[\n";
+    CURRENT_INDENT++;
+    int count = 1;
     for (auto& v : m_value)
     {
-        arrayString += v.format(indent);
+        bool at_end = (count == m_value.size());
+        array_string += format_line(v.format(), CURRENT_INDENT, at_end);
         count++;
-
-        if (count != m_value.size())
-        {
-            arrayString += ",\n";
-        }
-        else
-        {
-            indent--;
-            arrayString += "\n" + get_indent(indent) + "]";
-        }
     }
-    return arrayString;
+    CURRENT_INDENT--;
+    array_string += get_indent(CURRENT_INDENT) + "]";
+    return array_string;
 }
 
 // Dictionary
@@ -110,27 +130,21 @@ dict_t dict_value::value()
     return m_value;
 }
 
-std::string dict_value::format(int indent = 0)
+std::string dict_value::format()
 {
-    std::string dictString = get_indent(indent) + "{\n";
-    indent++;
-    int count = 0;
+    std::string dict_string = "{\n";
+    CURRENT_INDENT++;
+    int count = 1;
     for (auto& [k, v] : m_value)
     {
-        dictString += get_indent(indent) + k + ": " + v.format(0);
+        bool at_end = (count == m_value.size());
+        std::string new_line = (v.type() == Dictionary || v.type() == Array) ? ("\n" + get_indent(CURRENT_INDENT)) : "";
+        dict_string += format_dict(k, new_line + v.format(), CURRENT_INDENT, at_end);
         count++;
-
-        if (count != m_value.size())
-        {
-            dictString += ",\n";
-        }
-        else
-        {
-            indent--;
-            dictString += "\n" + get_indent(indent) + "}";
-        }
     }
-    return dictString;
+    CURRENT_INDENT--;
+    dict_string += get_indent(CURRENT_INDENT) + "}";
+    return dict_string;
 }
 
 // JSON Object
@@ -205,11 +219,11 @@ dict_t json::get_dict() const
     return static_cast<dict_value*>(m_value.get())->value();
 }
 
-std::string json::format(int indent = 0)
+std::string json::format()
 {
     if (m_value.get() != nullptr)
     {
-        return m_value.get()->format(indent);
+        return m_value.get()->format();
     }
 
     return "NULL";

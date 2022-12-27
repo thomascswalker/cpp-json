@@ -41,7 +41,7 @@ int main()
     array_t arr2;
     arr2.emplace_back(1);
     arr2.emplace_back(2);
-    arr2.emplace_back(3);
+    arr2.emplace_back(std::string("three"));
     json jarr2(arr2);
 
     array_t arr3;

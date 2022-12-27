@@ -11,9 +11,11 @@
 #define JSON_NAMESPACE_OPEN namespace JSON {
 #define JSON_NAMESPACE_CLOSE }
 #define JSON_NAMESPACE_USING using namespace JSON;
-#define JSON_TAB_SIZE 4
 
 JSON_NAMESPACE_OPEN
+
+// Globals
+static int CURRENT_INDENT = 0;
 
 // Forward declaration
 class json;
@@ -43,7 +45,7 @@ public:
     /// Format the current value to a string.
     /// </summary>
     /// <returns>The string-formatted value.</returns>
-    virtual std::string format(int indent) = 0;
+    virtual std::string format() = 0;
 };
 typedef base_value value_t;
 
@@ -53,7 +55,7 @@ class null_value
     void* m_value = nullptr;
 public:
     null_value() { };
-    std::string format(int indent);
+    std::string format();
 };
 
 class bool_value
@@ -68,7 +70,7 @@ public:
         *this = other;
     }
     bool value();
-    std::string format(int indent);
+    std::string format();
 };
 
 class int_value
@@ -83,7 +85,7 @@ public:
         m_value = other.m_value;
     }
     int value();
-    std::string format(int indent);
+    std::string format();
 };
 
 class double_value
@@ -98,7 +100,7 @@ public:
         m_value = other.m_value;
     }
     double value();
-    std::string format(int indent);
+    std::string format();
 };
 
 class string_value
@@ -113,7 +115,7 @@ public:
         m_value = other.m_value;
     }
     std::string value();
-    std::string format(int indent);
+    std::string format();
 };
 
 class array_value
@@ -127,7 +129,7 @@ public:
         *this = other;
     }
     array_t value();
-    std::string format(int indent);
+    std::string format();
 
     const array_value& operator = (const array_value& other)
     {
@@ -147,7 +149,7 @@ public:
         *this = other;
     }
     dict_t value();
-    std::string format(int indent);
+    std::string format();
 
     const dict_value& operator = (const dict_value& other)
     {
@@ -187,7 +189,7 @@ public:
     std::string get_string() const;
     array_t get_array() const;
     dict_t get_dict() const;
-    std::string format(int indent);
+    std::string format();
 
     // Operators
     const json& operator = (const json& other)
@@ -230,7 +232,7 @@ public:
     }
     friend std::ostream& operator << (std::ostream& o, json& j)
     {
-        return o << j.format(0);
+        return o << j.format();
     }
 };
 
