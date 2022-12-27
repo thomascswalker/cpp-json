@@ -59,7 +59,7 @@ std::string string_value::format(int indent = 0)
 }
 
 // Array
-array_value::array_value(const std::vector<json> value)
+array_value::array_value(const array_t value)
 {
     m_value.clear();
     for (const json& v : value)
@@ -68,7 +68,7 @@ array_value::array_value(const std::vector<json> value)
     }
 };
 
-std::vector<json> array_value::value()
+array_t array_value::value()
 {
     return m_value;
 }
@@ -92,6 +92,41 @@ std::string array_value::format(int indent = 0)
         }
     }
     return arrayString;
+}
+
+// Dictionary
+dict_value::dict_value(const dict_t value)
+{
+    for (const auto& [k, v] : value)
+    {
+        m_value[k] = v;
+    }
+};
+
+dict_t dict_value::value()
+{
+    return m_value;
+}
+
+std::string dict_value::format(int indent = 0)
+{
+    std::string dictString = get_indent(indent) + "{";
+    int count = 0;
+    for (auto& [k, v] : m_value)
+    {
+        dictString += k + ": " + v.format(indent);
+        count++;
+
+        if (count != m_value.size())
+        {
+            dictString += ",";
+        }
+        else
+        {
+            dictString += "}";
+        }
+    }
+    return dictString;
 }
 
 // JSON Object
@@ -124,10 +159,16 @@ json::json(const std::string& value)
     m_value = std::make_unique<string_value>(value);
     m_type = String;
 }
-json::json(const std::vector<json>& value)
+json::json(const array_t& value)
 {
 
     m_value = std::make_unique<array_value>(value);
+    m_type = Array;
+}
+json::json(const dict_t& value)
+{
+
+    m_value = std::make_unique<dict_value>(value);
     m_type = Array;
 }
 
@@ -151,9 +192,14 @@ std::string json::get_string() const
     return static_cast<string_value*>(m_value.get())->value();
 }
 
-std::vector<json> json::get_array() const
+array_t json::get_array() const
 {
     return static_cast<array_value*>(m_value.get())->value();
+}
+
+dict_t json::get_dict() const
+{
+    return static_cast<dict_value*>(m_value.get())->value();
 }
 
 std::string json::format(int indent = 0)

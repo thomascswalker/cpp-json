@@ -17,6 +17,8 @@ JSON_NAMESPACE_OPEN
 // Forward declaration
 class json;
 typedef json json_t;
+typedef std::vector<json> array_t;
+typedef std::map<std::string, json> dict_t;
 
 // Values
 enum value_type
@@ -116,17 +118,37 @@ public:
 class array_value
     : public value_t
 {
-    std::vector<json> m_value;
+    array_t m_value;
 public:
-    array_value(const std::vector<json> value);
+    array_value(const array_t value);
     array_value(const array_value& other)
     {
         *this = other;
     }
-    std::vector<json> value();
+    array_t value();
     std::string format(int indent);
 
     const array_value& operator = (const array_value& other)
+    {
+        m_value = other.m_value;
+        return *this;
+    }
+};
+
+class dict_value
+    : public value_t
+{
+    dict_t m_value;
+public:
+    dict_value(const dict_t value);
+    dict_value(const dict_value& other)
+    {
+        *this = other;
+    }
+    dict_t value();
+    std::string format(int indent);
+
+    const dict_value& operator = (const dict_value& other)
     {
         m_value = other.m_value;
         return *this;
@@ -143,13 +165,14 @@ class json
 
 public:
     // Constructors
-    json();                                 // Default
-    json(const json& other);                // Copy
-    json(bool value);                       // Bool
-    json(int value);                        // Integer
-    json(double value);                     // Double
-    json(const std::string& value);         // String
-    json(const std::vector<json>& value);   // Array
+    json();                         // Default
+    json(const json& other);        // Copy
+    json(bool value);               // Bool
+    json(int value);                // Integer
+    json(double value);             // Double
+    json(const std::string& value); // String
+    json(const array_t& value);     // Array
+    json(const dict_t& value);      // Dictionary
 
     // Destructor
     ~json() { };
@@ -161,7 +184,8 @@ public:
     int get_int() const;
     double get_double() const;
     std::string get_string() const;
-    std::vector<json> get_array() const;
+    array_t get_array() const;
+    dict_t get_dict() const;
     std::string format(int indent);
 
     // Operators
@@ -192,6 +216,11 @@ public:
             case (Array):
             {
                 m_value = std::make_unique<array_value>(other.get_array());
+                break;
+            }
+            case (Dictionary):
+            {
+                m_value = std::make_unique<dict_value>(other.get_dict());
                 break;
             }
         }
