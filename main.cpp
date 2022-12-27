@@ -54,16 +54,16 @@ int main()
     d1["test3"] = 15;
     json jd1(d1);
 
-    std::cout << jd1 << std::endl;
+    //std::cout << jd1 << std::endl;
 
-    //dict_t d2;
-    //d2["test"] = 5;
-    //d2["test2"] = 10;
-    //d2["test3"] = jd1;
-    //json jd2(d2);
+    dict_t d2;
+    d2["test"] = 5;
+    d2["test2"] = 10;
+    d2["test3"] = jd1;
+    json jd2(d2);
 
 
-    //std::cout << jd2 << std::endl;
+    std::cout << jd2 << std::endl;
 
     return 0;
 }

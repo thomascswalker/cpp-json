@@ -171,9 +171,8 @@ json::json(const array_t& value)
 }
 json::json(const dict_t& value)
 {
-
     m_value = std::make_unique<dict_value>(value);
-    m_type = Array;
+    m_type = Dictionary;
 }
 
 bool json::get_bool() const
