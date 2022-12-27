@@ -51,7 +51,7 @@ std::string string_value::format()
 }
 
 // Array
-array_value::array_value(const std::vector<json>& value)
+array_value::array_value(const std::vector<json> value)
 {
     for (const json& v : value)
     {
@@ -66,7 +66,12 @@ std::vector<json> array_value::value()
 
 std::string array_value::format()
 {
-    std::string arrayString = "[]";
+    std::string arrayString = "[";
+    for (auto& v : m_value)
+    {
+        arrayString += v.format() + ",";
+    }
+    arrayString += "]";
     return arrayString;
 }
 
@@ -75,6 +80,10 @@ json::json()
 {
     m_value = nullptr;
     m_type = Null;
+}
+json::json(const json& other)
+{
+    *this = other;
 }
 json::json(bool value)
 {
@@ -98,28 +107,34 @@ json::json(const std::string& value)
 }
 json::json(const std::vector<json>& value)
 {
+
     m_value = std::make_unique<array_value>(value);
     m_type = Array;
 }
 
-bool json::get_bool()
+bool json::get_bool() const
 {
     return static_cast<bool_value*>(m_value.get())->value();
 }
 
-int json::get_int()
+int json::get_int() const
 {
     return static_cast<int_value*>(m_value.get())->value();
 }
 
-double json::get_double()
+double json::get_double() const
 {
     return static_cast<double_value*>(m_value.get())->value();
 }
 
-std::string json::get_string()
+std::string json::get_string() const
 {
     return static_cast<string_value*>(m_value.get())->value();
+}
+
+std::vector<json> json::get_array() const
+{
+    return static_cast<array_value*>(m_value.get())->value();
 }
 
 std::string json::format()

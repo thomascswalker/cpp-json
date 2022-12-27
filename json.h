@@ -54,8 +54,18 @@ class bool_value
 public:
     bool_value(bool value)
         : m_value(value) { };
+    bool_value(const bool_value& other)
+    {
+        m_value = other.m_value;
+    }
     bool value();
     std::string format();
+
+    const bool_value& operator = (const bool_value& other)
+    {
+        m_value = other.m_value;
+        return *this;
+    }
 };
 
 class int_value
@@ -65,6 +75,10 @@ class int_value
 public:
     int_value(int value)
         : m_value(value) { };
+    int_value(const int_value& other)
+    {
+        m_value = other.m_value;
+    }
     int value();
     std::string format();
 };
@@ -76,6 +90,10 @@ class double_value
 public:
     double_value(double value)
         : m_value(value) { };
+    double_value(const double_value& other)
+    {
+        m_value = other.m_value;
+    }
     double value();
     std::string format();
 };
@@ -87,6 +105,10 @@ class string_value
 public:
     string_value(std::string value)
         : m_value(value) { };
+    string_value(const string_value& other)
+    {
+        m_value = other.m_value;
+    }
     std::string value();
     std::string format();
 };
@@ -96,9 +118,18 @@ class array_value
 {
     std::vector<json> m_value;
 public:
-    array_value(const std::vector<json>& value);
+    array_value(const std::vector<json> value);
+    array_value(const array_value& other)
+    {
+        *this = other;
+    }
     std::vector<json> value();
     std::string format();
+
+    const array_value& operator = (const array_value& other)
+    {
+        m_value = other.m_value;
+    }
 };
 
 /// <summary>
@@ -111,30 +142,45 @@ class json
 
 public:
     // Constructors
-    json();
-    json(bool value);
-    json(int value);
-    json(double value);
-    json(const std::string& value);
-    json(const std::vector<json>& value);
+    json();                                 // Default
+    json(const json& other);                // Copy
+    json(bool value);                       // Bool
+    json(int value);                        // Integer
+    json(double value);                     // Double
+    json(const std::string& value);         // String
+    json(const std::vector<json>& value);   // Array
+
+    // Destructor
     ~json() { };
 
     // Methods
     value_type type() { return m_type; }
 
-    bool get_bool();
-    int get_int();
-    double get_double();
-    std::string get_string();
+    bool get_bool() const;
+    int get_int() const;
+    double get_double() const;
+    std::string get_string() const;
+    std::vector<json> get_array() const;
     std::string format();
 
     // Operators
-    friend std::ostream& operator << (std::ostream& o, json& v);
+    const json& operator = (const json& other)
+    {
+        switch (other.m_type)
+        {
+            case (Bool):
+            {
+                m_value = std::make_unique<bool_value>(other.get_bool());
+                break;
+            }
+        }
+        m_type = other.m_type;
+        return (*this);
+    }
+    friend std::ostream& operator << (std::ostream& o, json& j)
+    {
+        return o << j.format();
+    }
 };
-
-std::ostream& operator << (std::ostream& o, json& j)
-{
-    return o << j.format();
-}
 
 #endif
