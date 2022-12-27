@@ -12,20 +12,20 @@ int main()
 {
     // Boolean
     json_t j1 = json_t(false);
-    std::cout << j1 << std::endl;
+    //std::cout << j1 << std::endl;
 
     // Integer
     json_t j2 = json_t(15382);
-    std::cout << j2 << std::endl;
+    //std::cout << j2 << std::endl;
 
     // Double
     json_t j3 = json_t(3.14159);
-    std::cout << j3 << std::endl;
+    //std::cout << j3 << std::endl;
 
     // String
     std::string string = std::string("this is a sentence.");
     json_t j4 = json_t(string);
-    std::cout << j4 << std::endl;
+    //std::cout << j4 << std::endl;
 
     // Array
     array_t arr1;
@@ -45,7 +45,7 @@ int main()
     arr3.emplace_back(jarr2);
     json jarr3(arr3);
 
-    std::cout << jarr3 << std::endl;
+    //std::cout << jarr3 << std::endl;
 
     // Dictionary
     dict_t d1;

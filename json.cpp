@@ -2,9 +2,9 @@
 
 JSON_NAMESPACE_OPEN
 
-std::string get_indent(int indent)
+std::string get_indent(int indent = 0)
 {
-    return std::string(" ", 0, indent * 4);
+    return std::string(indent * JSON_TAB_SIZE, ' ');
 }
 
 // Null
@@ -75,7 +75,8 @@ array_t array_value::value()
 
 std::string array_value::format(int indent = 0)
 {
-    std::string arrayString = get_indent(indent) + "[";
+    std::string arrayString = get_indent(indent) + "[\n";
+    indent++;
     int count = 0;
     for (auto& v : m_value)
     {
@@ -84,11 +85,12 @@ std::string array_value::format(int indent = 0)
 
         if (count != m_value.size())
         {
-            arrayString += ",";
+            arrayString += ",\n";
         }
         else
         {
-            arrayString += "]";
+            indent--;
+            arrayString += "\n" + get_indent(indent) + "]";
         }
     }
     return arrayString;
@@ -110,20 +112,22 @@ dict_t dict_value::value()
 
 std::string dict_value::format(int indent = 0)
 {
-    std::string dictString = get_indent(indent) + "{";
+    std::string dictString = get_indent(indent) + "{\n";
+    indent++;
     int count = 0;
     for (auto& [k, v] : m_value)
     {
-        dictString += k + ": " + v.format(indent);
+        dictString += get_indent(indent) + k + ": " + v.format(0);
         count++;
 
         if (count != m_value.size())
         {
-            dictString += ",";
+            dictString += ",\n";
         }
         else
         {
-            dictString += "}";
+            indent--;
+            dictString += "\n" + get_indent(indent) + "}";
         }
     }
     return dictString;

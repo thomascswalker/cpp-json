@@ -11,6 +11,7 @@
 #define JSON_NAMESPACE_OPEN namespace JSON {
 #define JSON_NAMESPACE_CLOSE }
 #define JSON_NAMESPACE_USING using namespace JSON;
+#define JSON_TAB_SIZE 4
 
 JSON_NAMESPACE_OPEN
 
