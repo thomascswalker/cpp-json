@@ -1,9 +1,16 @@
 #include "json.h"
 
-// Null
-std::string null_value::format()
+JSON_NAMESPACE_OPEN
+
+std::string get_indent(int indent)
 {
-    return "Null";
+    return std::string(" ", 0, indent * 4);
+}
+
+// Null
+std::string null_value::format(int indent = 0)
+{
+    return get_indent(indent) + "Null";
 }
 
 // Bool
@@ -12,9 +19,10 @@ bool bool_value::value()
     return m_value;
 }
 
-std::string bool_value::format()
+std::string bool_value::format(int indent = 0)
 {
-    return (m_value == true ? std::string("true") : std::string("false"));
+    std::string bool_string(m_value == true ? std::string("true") : std::string("false"));
+    return get_indent(indent) + bool_string;
 }
 
 // Int
@@ -23,9 +31,9 @@ int int_value::value()
     return m_value;
 }
 
-std::string int_value::format()
+std::string int_value::format(int indent = 0)
 {
-    return std::to_string(m_value);
+    return get_indent(indent) + std::to_string(m_value);
 }
 
 // Double
@@ -34,9 +42,9 @@ double double_value::value()
     return m_value;
 }
 
-std::string double_value::format()
+std::string double_value::format(int indent = 0)
 {
-    return std::to_string(m_value);
+    return get_indent(indent) + std::to_string(m_value);
 }
 
 // String
@@ -45,9 +53,9 @@ std::string string_value::value()
     return m_value;
 }
 
-std::string string_value::format()
+std::string string_value::format(int indent = 0)
 {
-    return m_value;
+    return get_indent(indent) + m_value;
 }
 
 // Array
@@ -65,14 +73,24 @@ std::vector<json> array_value::value()
     return m_value;
 }
 
-std::string array_value::format()
+std::string array_value::format(int indent = 0)
 {
-    std::string arrayString = "[\n";
+    std::string arrayString = get_indent(indent) + "[";
+    int count = 0;
     for (auto& v : m_value)
     {
-        arrayString += v.format() + ",";
+        arrayString += v.format(indent);
+        count++;
+
+        if (count != m_value.size())
+        {
+            arrayString += ",";
+        }
+        else
+        {
+            arrayString += "]";
+        }
     }
-    arrayString += "\n]";
     return arrayString;
 }
 
@@ -138,12 +156,14 @@ std::vector<json> json::get_array() const
     return static_cast<array_value*>(m_value.get())->value();
 }
 
-std::string json::format()
+std::string json::format(int indent = 0)
 {
     if (m_value.get() != nullptr)
     {
-        return m_value.get()->format();
+        return m_value.get()->format(indent);
     }
 
     return "NULL";
 }
+
+JSON_NAMESPACE_CLOSE

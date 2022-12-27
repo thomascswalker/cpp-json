@@ -8,9 +8,21 @@
 
 #include "inspection.h"
 
+#define JSON_NAMESPACE_OPEN namespace JSON {
+#define JSON_NAMESPACE_CLOSE }
+#define JSON_NAMESPACE_USING using namespace JSON;
+
+JSON_NAMESPACE_OPEN
+
 // Forward declaration
 class json;
 typedef json json_t;
+
+//std::string get_indent(int indent)
+//{
+//    std::string space(" ");
+//    return std::string(" ", 0, indent * 4);
+//}
 
 // Values
 enum value_type
@@ -34,7 +46,7 @@ public:
     /// Format the current value to a string.
     /// </summary>
     /// <returns>The string-formatted value.</returns>
-    virtual std::string format() = 0;
+    virtual std::string format(int indent) = 0;
 };
 typedef base_value value_t;
 
@@ -44,7 +56,7 @@ class null_value
     void* m_value = nullptr;
 public:
     null_value() { };
-    std::string format();
+    std::string format(int indent);
 };
 
 class bool_value
@@ -56,18 +68,10 @@ public:
         : m_value(value) { };
     bool_value(const bool_value& other)
     {
-        std::cout << other.m_value << std::endl;
         *this = other;
     }
     bool value();
-    std::string format();
-
-    const bool_value& operator = (const bool_value& other)
-    {
-        std::cout << other.m_value << std::endl;
-        m_value = other.m_value;
-        return *this;
-    }
+    std::string format(int indent);
 };
 
 class int_value
@@ -82,7 +86,7 @@ public:
         m_value = other.m_value;
     }
     int value();
-    std::string format();
+    std::string format(int indent);
 };
 
 class double_value
@@ -97,7 +101,7 @@ public:
         m_value = other.m_value;
     }
     double value();
-    std::string format();
+    std::string format(int indent);
 };
 
 class string_value
@@ -112,7 +116,7 @@ public:
         m_value = other.m_value;
     }
     std::string value();
-    std::string format();
+    std::string format(int indent);
 };
 
 class array_value
@@ -126,11 +130,12 @@ public:
         *this = other;
     }
     std::vector<json> value();
-    std::string format();
+    std::string format(int indent);
 
     const array_value& operator = (const array_value& other)
     {
         m_value = other.m_value;
+        return *this;
     }
 };
 
@@ -163,7 +168,7 @@ public:
     double get_double() const;
     std::string get_string() const;
     std::vector<json> get_array() const;
-    std::string format();
+    std::string format(int indent);
 
     // Operators
     const json& operator = (const json& other)
@@ -201,8 +206,10 @@ public:
     }
     friend std::ostream& operator << (std::ostream& o, json& j)
     {
-        return o << j.format();
+        return o << j.format(0);
     }
 };
+
+JSON_NAMESPACE_CLOSE
 
 #endif

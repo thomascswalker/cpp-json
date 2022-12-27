@@ -6,6 +6,8 @@
 
 #include "json.h"
 
+JSON_NAMESPACE_USING
+
 int main()
 {
     json_t j1 = json_t(false);
@@ -28,9 +30,9 @@ int main()
     json jarr1(arr1);
 
     std::vector<json> arr2;
-    arr2.emplace_back(false);
-    arr2.emplace_back(false);
-    arr2.emplace_back(true);
+    arr2.emplace_back(1);
+    arr2.emplace_back(2);
+    arr2.emplace_back(3);
     json jarr2(arr2);
 
     std::vector<json> arr3;
@@ -38,8 +40,8 @@ int main()
     arr3.emplace_back(jarr2);
     json jarr3(arr3);
 
-    std::cout << jarr1 << std::endl;
-    std::cout << jarr2 << std::endl;
+    //std::cout << jarr1 << std::endl;
+    //std::cout << jarr2 << std::endl;
     std::cout << jarr3 << std::endl;
 
     return 0;
