@@ -18,12 +18,6 @@ JSON_NAMESPACE_OPEN
 class json;
 typedef json json_t;
 
-//std::string get_indent(int indent)
-//{
-//    std::string space(" ");
-//    return std::string(" ", 0, indent * 4);
-//}
-
 // Values
 enum value_type
 {

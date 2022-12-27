@@ -40,8 +40,6 @@ int main()
     arr3.emplace_back(jarr2);
     json jarr3(arr3);
 
-    //std::cout << jarr1 << std::endl;
-    //std::cout << jarr2 << std::endl;
     std::cout << jarr3 << std::endl;
 
     return 0;
