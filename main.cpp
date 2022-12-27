@@ -12,20 +12,24 @@ int main()
 {
     // Boolean
     json_t j1 = json_t(false);
-    //std::cout << j1 << std::endl;
+    std::cout << "Boolean" << std::endl;
+    std::cout << j1 << std::endl << std::endl;
 
     // Integer
     json_t j2 = json_t(15382);
-    //std::cout << j2 << std::endl;
+    std::cout << "Integer" << std::endl;
+    std::cout << j2 << std::endl << std::endl;
 
     // Double
     json_t j3 = json_t(3.14159);
-    //std::cout << j3 << std::endl;
+    std::cout << "Double" << std::endl;
+    std::cout << j3 << std::endl << std::endl;
 
     // String
     std::string string = std::string("this is a sentence.");
     json_t j4 = json_t(string);
-    //std::cout << j4 << std::endl;
+    std::cout << "String" << std::endl;
+    std::cout << j4 << std::endl << std::endl;
 
     // Array
     array_t arr1;
@@ -45,7 +49,8 @@ int main()
     arr3.emplace_back(jarr2);
     json jarr3(arr3);
 
-    //std::cout << jarr3 << std::endl;
+    std::cout << "Array" << std::endl;
+    std::cout << jarr3 << std::endl << std::endl;
 
     // Dictionary
     dict_t d1;
@@ -54,16 +59,14 @@ int main()
     d1["test3"] = 15;
     json jd1(d1);
 
-    //std::cout << jd1 << std::endl;
-
     dict_t d2;
     d2["test"] = 5;
     d2["test2"] = 10;
     d2["test3"] = jd1;
     json jd2(d2);
 
-
-    std::cout << jd2 << std::endl;
+    std::cout << "Dictionary" << std::endl;
+    std::cout << jd2 << std::endl << std::endl;
 
     return 0;
 }
