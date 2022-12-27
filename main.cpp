@@ -23,7 +23,13 @@ int main()
 
     std::vector<json> arr1;
     arr1.emplace_back(false);
+    arr1.emplace_back(true);
     arr1.emplace_back(false);
+    arr1.emplace_back(true);
+    arr1.emplace_back(false);
+    arr1.emplace_back(true);
+
+    std::cout << "Constructing JSON Array" << std::endl;
     json jarr1(arr1);
     std::cout << jarr1 << std::endl;
 

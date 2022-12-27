@@ -56,13 +56,15 @@ public:
         : m_value(value) { };
     bool_value(const bool_value& other)
     {
-        m_value = other.m_value;
+        std::cout << other.m_value << std::endl;
+        *this = other;
     }
     bool value();
     std::string format();
 
     const bool_value& operator = (const bool_value& other)
     {
+        std::cout << other.m_value << std::endl;
         m_value = other.m_value;
         return *this;
     }
@@ -170,12 +172,14 @@ public:
         {
             case (Bool):
             {
+                //std::cout << &*this << " = " << other.get_bool() << std::endl;
                 m_value = std::make_unique<bool_value>(other.get_bool());
+                //std::cout << static_cast<bool_value*>(m_value.get())->value() << std::endl;
                 break;
             }
         }
         m_type = other.m_type;
-        return (*this);
+        return *this;
     }
     friend std::ostream& operator << (std::ostream& o, json& j)
     {
