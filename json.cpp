@@ -191,42 +191,166 @@ json::json(const dict_t& value)
 
 bool json::get_bool() const
 {
-    return static_cast<bool_value*>(m_value.get())->value();
+    return as_bool().value();
 }
 
 int json::get_int() const
 {
-    return static_cast<int_value*>(m_value.get())->value();
+    return as_int().value();
 }
 
 double json::get_double() const
 {
-    return static_cast<double_value*>(m_value.get())->value();
+    return as_double().value();
 }
 
 std::string json::get_string() const
 {
-    return static_cast<string_value*>(m_value.get())->value();
+    return as_string().value();
 }
 
 array_t json::get_array() const
 {
-    return static_cast<array_value*>(m_value.get())->value();
+    return as_array().value();
 }
 
 dict_t json::get_dict() const
 {
-    return static_cast<dict_value*>(m_value.get())->value();
+    return as_dict().value();
 }
 
-std::string json::format()
+std::string json::format() const
 {
-    if (m_value.get() != nullptr)
+    if (m_value.get() == nullptr)
     {
-        return m_value.get()->format();
+        return "NULL";
     }
 
-    return "NULL";
+    return m_value.get()->format();
 }
+
+bool_value& json::as_bool() const
+{
+    return *static_cast<bool_value*>(m_value.get());
+}
+
+int_value& json::as_int() const
+{
+    return *static_cast<int_value*>(m_value.get());
+}
+
+double_value& json::as_double() const
+{
+    return *static_cast<double_value*>(m_value.get());
+}
+
+string_value& json::as_string() const
+{
+    return *static_cast<string_value*>(m_value.get());
+}
+
+array_value& json::as_array() const
+{
+    return *static_cast<array_value*>(m_value.get());
+}
+
+dict_value& json::as_dict() const
+{
+    return *static_cast<dict_value*>(m_value.get());
+}
+
+const json& json::operator = (const json& other)
+{
+    switch (other.m_type)
+    {
+        case (Bool):
+        {
+            m_value = std::make_unique<bool_value>(other.get_bool());
+            break;
+        }
+        case (Int):
+        {
+            m_value = std::make_unique<int_value>(other.get_int());
+            break;
+        }
+        case (Double):
+        {
+            m_value = std::make_unique<double_value>(other.get_double());
+            break;
+        }
+        case (String):
+        {
+            m_value = std::make_unique<string_value>(other.get_string());
+            break;
+        }
+        case (Array):
+        {
+            m_value = std::make_unique<array_value>(other.get_array());
+            break;
+        }
+        case (Dictionary):
+        {
+            m_value = std::make_unique<dict_value>(other.get_dict());
+            break;
+        }
+    }
+    m_type = other.m_type;
+    return *this;
+}
+
+json& json::operator[](const std::string& key)
+{
+    if (m_type != Dictionary)
+    {
+        throw std::runtime_error("Invalid type, wanted Dictionary");
+    }
+    return as_dict().value()[key];
+}
+
+json& json::operator[](int index)
+{
+    std::cout << m_type << std::endl;
+    if (m_type != Array)
+    {
+        throw std::runtime_error("Invalid type, wanted Array");
+    }
+    return as_array().value()[index];
+}
+
+std::ostream& operator << (std::ostream& o, json& j)
+{
+    switch (j.type())
+    {
+        case (Bool):
+        {
+            return o << j.as_bool().format();
+        }
+        case (Int):
+        {
+            return o << j.as_int().format();
+        }
+        case (Double):
+        {
+            return o << j.as_double().format();
+        }
+        case (String):
+        {
+            return o << j.as_string().format();
+        }
+        case (Array):
+        {
+            return o << j.as_array().format();
+        }
+        case (Dictionary):
+        {
+            return o << j.as_dict().format();
+        }
+        default:
+        {
+            return o << "UNKNOWN TYPE: " << j.type();
+        }
+    }
+}
+
 
 JSON_NAMESPACE_CLOSE

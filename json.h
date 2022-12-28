@@ -82,7 +82,7 @@ public:
         : m_value(value) { };
     int_value(const int_value& other)
     {
-        m_value = other.m_value;
+        *this = other;
     }
     int value();
     std::string format();
@@ -97,7 +97,7 @@ public:
         : m_value(value) { };
     double_value(const double_value& other)
     {
-        m_value = other.m_value;
+        *this = other;
     }
     double value();
     std::string format();
@@ -112,7 +112,7 @@ public:
         : m_value(value) { };
     string_value(const string_value& other)
     {
-        m_value = other.m_value;
+        *this = other;
     }
     std::string value();
     std::string format();
@@ -136,6 +136,14 @@ public:
         m_value = other.m_value;
         return *this;
     }
+    json& operator [] (const int index)
+    {
+        if (index > m_value.size())
+        {
+            throw std::runtime_error("Index out of bounds.");
+        }
+        return m_value[index];
+    }
 };
 
 class dict_value
@@ -155,6 +163,10 @@ public:
     {
         m_value = other.m_value;
         return *this;
+    }
+    json& operator [] (const std::string key)
+    {
+        return m_value[key];
     }
 };
 
@@ -189,51 +201,22 @@ public:
     std::string get_string() const;
     array_t get_array() const;
     dict_t get_dict() const;
-    std::string format();
+    
+    bool_value& as_bool() const;
+    int_value& as_int() const;
+    double_value& as_double() const;
+    string_value& as_string() const;
+    array_value& as_array() const;
+    dict_value& as_dict() const;
+
+    std::string format() const;
+
 
     // Operators
-    const json& operator = (const json& other)
-    {
-        switch (other.m_type)
-        {
-            case (Bool):
-            {
-                m_value = std::make_unique<bool_value>(other.get_bool());
-                break;
-            }
-            case (Int):
-            {
-                m_value = std::make_unique<int_value>(other.get_int());
-                break;
-            }
-            case (Double):
-            {
-                m_value = std::make_unique<double_value>(other.get_double());
-                break;
-            }
-            case (String):
-            {
-                m_value = std::make_unique<string_value>(other.get_string());
-                break;
-            }
-            case (Array):
-            {
-                m_value = std::make_unique<array_value>(other.get_array());
-                break;
-            }
-            case (Dictionary):
-            {
-                m_value = std::make_unique<dict_value>(other.get_dict());
-                break;
-            }
-        }
-        m_type = other.m_type;
-        return *this;
-    }
-    friend std::ostream& operator << (std::ostream& o, json& j)
-    {
-        return o << j.format();
-    }
+    const json& operator = (const json& other);
+    json& operator [] (const std::string& key);
+    json& operator [] (int index);
+    friend std::ostream& operator << (std::ostream& o, json& j);
 };
 
 JSON_NAMESPACE_CLOSE

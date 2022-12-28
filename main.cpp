@@ -32,21 +32,13 @@ int main()
     std::cout << j4 << std::endl << std::endl;
 
     // Array
-    array_t arr1;
-    arr1.emplace_back(true);
-    arr1.emplace_back(true);
-    arr1.emplace_back(false);
+    array_t arr1 { true, false, true, false, true };
     json jarr1(arr1);
 
-    array_t arr2;
-    arr2.emplace_back(1);
-    arr2.emplace_back(2);
-    arr2.emplace_back(std::string("three"));
+    array_t arr2 { 1, 2, 3 };
     json jarr2(arr2);
 
-    array_t arr3;
-    arr3.emplace_back(jarr1);
-    arr3.emplace_back(jarr2);
+    array_t arr3 { jarr1, jarr2, j1, j2, j3};
     json jarr3(arr3);
 
     std::cout << "Array" << std::endl;
@@ -67,6 +59,15 @@ int main()
 
     std::cout << "Dictionary" << std::endl;
     std::cout << jd2 << std::endl << std::endl;
+
+    // Accessors
+    std::cout << "Accessors" << std::endl;
+    std::cout << "d1[\"test\"] = " << d1["test"] << std::endl;
+
+    std::cout << arr2[0] << std::endl;
+    std::cout << jarr2[0] << std::endl;
+    std::cout << d2["test"] << std::endl;
+    std::cout << jd2["test"] << std::endl;
 
     return 0;
 }
