@@ -293,6 +293,8 @@ const json& json::operator = (const json& other)
             m_value = std::make_unique<dict_value>(other.get_dict());
             break;
         }
+        case (Null):
+            break;
     }
     m_type = other.m_type;
     return *this;
@@ -304,7 +306,7 @@ json& json::operator[](const std::string& key)
     {
         throw std::runtime_error("Invalid type, wanted Dictionary");
     }
-    return as_dict().value()[key];
+    return as_dict()[key];
 }
 
 json& json::operator[](int index)
@@ -314,7 +316,7 @@ json& json::operator[](int index)
     {
         throw std::runtime_error("Invalid type, wanted Array");
     }
-    return as_array().value()[index];
+    return as_array()[index];
 }
 
 std::ostream& operator << (std::ostream& o, json& j)
