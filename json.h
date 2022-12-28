@@ -18,20 +18,20 @@ JSON_NAMESPACE_OPEN
 static int CURRENT_INDENT = 0;
 
 // Forward declaration
-class json;
-typedef json json_t;
-typedef std::vector<json> array_t;
-typedef std::map<std::string, json> dict_t;
+class JsonObject;
+typedef JsonObject Json;
+typedef std::vector<JsonObject> JsonArray;
+typedef std::map<std::string, JsonObject> JsonDict;
 
-std::string get_indent(int indent);
-std::string format_line(const std::string& value, int indent, bool end);
-std::string format_dict(const std::string& key, const std::string& value, int indent, bool end);
+std::string getIndent(int indent);
+std::string formatLine(const std::string& value, int indent, bool end);
+std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
 
-std::ostream& operator << (std::ostream& o, array_t& a);
-std::ostream& operator << (std::ostream& o, dict_t& d);
+std::ostream& operator << (std::ostream& o, JsonArray& a);
+std::ostream& operator << (std::ostream& o, JsonDict& d);
 
 // Values
-enum value_type
+enum ValueType
 {
     Null,           // nullptr
     Bool,           // true, false
@@ -45,7 +45,7 @@ enum value_type
 /// <summary>
 /// Base class for all JSON value types.
 /// </summary>
-class base_value
+class Value
 {
 public:
     /// <summary>
@@ -54,14 +54,14 @@ public:
     /// <returns>The string-formatted value.</returns>
     virtual std::string format() = 0;
 };
-typedef base_value value_t;
+typedef Value value_t;
 
-class null_value
+class NullValue
     : public value_t
 {
     void* m_value = nullptr;
 public:
-    null_value() { };
+    NullValue() { };
     std::string format();
     std::ostream& operator << (std::ostream& o)
     {
@@ -69,14 +69,14 @@ public:
     }
 };
 
-class bool_value
+class BoolValue
     : public value_t
 {
     bool m_value;
 public:
-    bool_value(bool value)
+    BoolValue(bool value)
         : m_value(value) { };
-    bool_value(const bool_value& other)
+    BoolValue(const BoolValue& other)
     {
         *this = other;
     }
@@ -88,14 +88,14 @@ public:
     }
 };
 
-class int_value
+class IntValue
     : public value_t
 {
     int m_value;
 public:
-    int_value(int value)
+    IntValue(int value)
         : m_value(value) { };
-    int_value(const int_value& other)
+    IntValue(const IntValue& other)
     {
         *this = other;
     }
@@ -107,14 +107,14 @@ public:
     }
 };
 
-class double_value
+class DoubleValue
     : public value_t
 {
     double m_value;
 public:
-    double_value(double value)
+    DoubleValue(double value)
         : m_value(value) { };
-    double_value(const double_value& other)
+    DoubleValue(const DoubleValue& other)
     {
         *this = other;
     }
@@ -126,14 +126,14 @@ public:
     }
 };
 
-class string_value
+class StringValue
     : public value_t
 {
     std::string m_value;
 public:
-    string_value(std::string value)
+    StringValue(std::string value)
         : m_value(value) { };
-    string_value(const string_value& other)
+    StringValue(const StringValue& other)
     {
         *this = other;
     }
@@ -145,25 +145,25 @@ public:
     }
 };
 
-class array_value
+class ArrayValue
     : public value_t
 {
-    array_t m_value;
+    JsonArray m_value;
 public:
-    array_value(const array_t value);
-    array_value(const array_value& other)
+    ArrayValue(const JsonArray value);
+    ArrayValue(const ArrayValue& other)
     {
         *this = other;
     }
-    array_t value();
+    JsonArray value();
     std::string format();
 
-    const array_value& operator = (const array_value& other)
+    const ArrayValue& operator = (const ArrayValue& other)
     {
         m_value = other.m_value;
         return *this;
     }
-    json& operator [] (const int index)
+    JsonObject& operator [] (const int index)
     {
         if (index > m_value.size())
         {
@@ -175,81 +175,81 @@ public:
     {
         return o << format();
     }
-    friend std::ostream& operator << (std::ostream& o, array_value& a);
+    friend std::ostream& operator << (std::ostream& o, ArrayValue& a);
 };
 
-class dict_value
+class DictValue
     : public value_t
 {
-    dict_t m_value;
+    JsonDict m_value;
 public:
-    dict_value(const dict_t value);
-    dict_value(const dict_value& other)
+    DictValue(const JsonDict value);
+    DictValue(const DictValue& other)
     {
         *this = other;
     }
-    dict_t value();
+    JsonDict value();
     std::string format();
 
-    const dict_value& operator = (const dict_value& other)
+    const DictValue& operator = (const DictValue& other)
     {
         m_value = other.m_value;
         return *this;
     }
-    json& operator [] (const std::string key)
+    JsonObject& operator [] (const std::string key)
     {
         return m_value[key];
     }
-    friend std::ostream& operator << (std::ostream& o, dict_value& d);
+    friend std::ostream& operator << (std::ostream& o, DictValue& d);
 };
 
 /// <summary>
 /// Base JSON object. Contains a wrapper for each possible value type, with constructors and accessors for each.
 /// </summary>
-class json
+class JsonObject
 {
     std::unique_ptr<value_t> m_value;
-    value_type m_type;
+    ValueType m_type;
 
 public:
     // Constructors
-    json();                         // Default
-    json(const json& other);        // Copy
-    json(bool value);               // Bool
-    json(int value);                // Integer
-    json(double value);             // Double
-    json(const std::string& value); // String
-    json(const array_t& value);     // Array
-    json(const dict_t& value);      // Dictionary
+    JsonObject();                         // Default
+    JsonObject(const JsonObject& other);        // Copy
+    JsonObject(bool value);               // Bool
+    JsonObject(int value);                // Integer
+    JsonObject(double value);             // Double
+    JsonObject(const std::string& value); // String
+    JsonObject(const JsonArray& value);     // Array
+    JsonObject(const JsonDict& value);      // Dictionary
 
     // Destructor
-    ~json() { };
+    ~JsonObject() { };
 
     // Methods
-    value_type type() { return m_type; }
+    ValueType type() { return m_type; }
 
-    bool_value& as_bool() const;
-    int_value& as_int() const;
-    double_value& as_double() const;
-    string_value& as_string() const;
-    array_value& as_array() const;
-    dict_value& as_dict() const;
+    BoolValue& asBool() const;
+    IntValue& asInt() const;
+    DoubleValue& asDouble() const;
+    StringValue& asString() const;
+    ArrayValue& asArray() const;
+    DictValue& asDict() const;
 
-    bool get_bool() const;
-    int get_int() const;
-    double get_double() const;
-    std::string get_string() const;
-    array_t get_array() const;
-    dict_t get_dict() const;
+    bool getBool() const;
+    int getInt() const;
+    double getDouble() const;
+    std::string getString() const;
+    JsonArray getArray() const;
+    JsonDict getDict() const;
 
     std::string format() const;
 
     // Operators
-    const json& operator = (const json& other);
-    json& operator [] (const std::string& key);
-    json& operator [] (int index);
-    friend std::ostream& operator << (std::ostream& o, json& j);
-    friend std::ostream& operator << (std::ostream& o, const json& j);
+    const JsonObject& operator = (const JsonObject& other);
+    JsonObject& operator [] (const std::string& key);
+    JsonObject& operator [] (int index);
+    friend std::ostream& operator << (std::ostream& o, JsonObject& j);
+    friend std::ostream& operator << (std::ostream& o, const JsonObject& j);
 };
 
 JSON_NAMESPACE_CLOSE

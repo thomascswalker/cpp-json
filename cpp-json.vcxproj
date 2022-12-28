@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="inspection.h" />
     <ClInclude Include="json.h" />
+    <ClInclude Include="parser.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="file.json" />
