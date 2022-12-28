@@ -34,6 +34,17 @@ std::string format_dict(const std::string& key, const std::string& value, int in
     return line;
 }
 
+// General operators
+std::ostream& operator << (std::ostream& o, array_t& a)
+{
+    return o << json(a).format();
+}
+
+std::ostream& operator << (std::ostream& o, dict_t& d)
+{
+    return o << json(d).format();
+}
+
 // Null
 std::string null_value::format()
 {
@@ -189,6 +200,36 @@ json::json(const dict_t& value)
     m_type = Dictionary;
 }
 
+bool_value& json::as_bool() const
+{
+    return *static_cast<bool_value*>(m_value.get());
+}
+
+int_value& json::as_int() const
+{
+    return *static_cast<int_value*>(m_value.get());
+}
+
+double_value& json::as_double() const
+{
+    return *static_cast<double_value*>(m_value.get());
+}
+
+string_value& json::as_string() const
+{
+    return *static_cast<string_value*>(m_value.get());
+}
+
+array_value& json::as_array() const
+{
+    return *static_cast<array_value*>(m_value.get());
+}
+
+dict_value& json::as_dict() const
+{
+    return *static_cast<dict_value*>(m_value.get());
+}
+
 bool json::get_bool() const
 {
     return as_bool().value();
@@ -227,36 +268,6 @@ std::string json::format() const
     }
 
     return m_value.get()->format();
-}
-
-bool_value& json::as_bool() const
-{
-    return *static_cast<bool_value*>(m_value.get());
-}
-
-int_value& json::as_int() const
-{
-    return *static_cast<int_value*>(m_value.get());
-}
-
-double_value& json::as_double() const
-{
-    return *static_cast<double_value*>(m_value.get());
-}
-
-string_value& json::as_string() const
-{
-    return *static_cast<string_value*>(m_value.get());
-}
-
-array_value& json::as_array() const
-{
-    return *static_cast<array_value*>(m_value.get());
-}
-
-dict_value& json::as_dict() const
-{
-    return *static_cast<dict_value*>(m_value.get());
 }
 
 const json& json::operator = (const json& other)
@@ -302,7 +313,7 @@ const json& json::operator = (const json& other)
 
 json& json::operator[](const std::string& key)
 {
-    if (m_type != Dictionary)
+    if (m_type != Dictionary && m_value == nullptr)
     {
         throw std::runtime_error("Invalid type, wanted Dictionary");
     }
@@ -319,39 +330,24 @@ json& json::operator[](int index)
     return as_array()[index];
 }
 
+std::ostream& operator<<(std::ostream& o, array_value& a)
+{
+    return o << a.format();
+}
+
+std::ostream& operator << (std::ostream& o, dict_value& d)
+{
+    return o << d.format();
+}
+
 std::ostream& operator << (std::ostream& o, json& j)
 {
-    switch (j.type())
-    {
-        case (Bool):
-        {
-            return o << j.as_bool().format();
-        }
-        case (Int):
-        {
-            return o << j.as_int().format();
-        }
-        case (Double):
-        {
-            return o << j.as_double().format();
-        }
-        case (String):
-        {
-            return o << j.as_string().format();
-        }
-        case (Array):
-        {
-            return o << j.as_array().format();
-        }
-        case (Dictionary):
-        {
-            return o << j.as_dict().format();
-        }
-        default:
-        {
-            return o << "UNKNOWN TYPE: " << j.type();
-        }
-    }
+    return o << j.format();
+}
+
+std::ostream& operator << (std::ostream& o, const json& j)
+{
+    return o << j.format();
 }
 
 

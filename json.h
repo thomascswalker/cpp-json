@@ -23,6 +23,13 @@ typedef json json_t;
 typedef std::vector<json> array_t;
 typedef std::map<std::string, json> dict_t;
 
+std::string get_indent(int indent);
+std::string format_line(const std::string& value, int indent, bool end);
+std::string format_dict(const std::string& key, const std::string& value, int indent, bool end);
+
+std::ostream& operator << (std::ostream& o, array_t& a);
+std::ostream& operator << (std::ostream& o, dict_t& d);
+
 // Values
 enum value_type
 {
@@ -56,6 +63,10 @@ class null_value
 public:
     null_value() { };
     std::string format();
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
 };
 
 class bool_value
@@ -71,6 +82,10 @@ public:
     }
     bool value();
     std::string format();
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
 };
 
 class int_value
@@ -86,6 +101,10 @@ public:
     }
     int value();
     std::string format();
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
 };
 
 class double_value
@@ -101,6 +120,10 @@ public:
     }
     double value();
     std::string format();
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
 };
 
 class string_value
@@ -116,6 +139,10 @@ public:
     }
     std::string value();
     std::string format();
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
 };
 
 class array_value
@@ -144,6 +171,11 @@ public:
         }
         return m_value[index];
     }
+    std::ostream& operator << (std::ostream& o)
+    {
+        return o << format();
+    }
+    friend std::ostream& operator << (std::ostream& o, array_value& a);
 };
 
 class dict_value
@@ -168,6 +200,7 @@ public:
     {
         return m_value[key];
     }
+    friend std::ostream& operator << (std::ostream& o, dict_value& d);
 };
 
 /// <summary>
@@ -195,13 +228,6 @@ public:
     // Methods
     value_type type() { return m_type; }
 
-    bool get_bool() const;
-    int get_int() const;
-    double get_double() const;
-    std::string get_string() const;
-    array_t get_array() const;
-    dict_t get_dict() const;
-    
     bool_value& as_bool() const;
     int_value& as_int() const;
     double_value& as_double() const;
@@ -209,14 +235,21 @@ public:
     array_value& as_array() const;
     dict_value& as_dict() const;
 
-    std::string format() const;
+    bool get_bool() const;
+    int get_int() const;
+    double get_double() const;
+    std::string get_string() const;
+    array_t get_array() const;
+    dict_t get_dict() const;
 
+    std::string format() const;
 
     // Operators
     const json& operator = (const json& other);
     json& operator [] (const std::string& key);
     json& operator [] (int index);
     friend std::ostream& operator << (std::ostream& o, json& j);
+    friend std::ostream& operator << (std::ostream& o, const json& j);
 };
 
 JSON_NAMESPACE_CLOSE

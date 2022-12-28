@@ -69,5 +69,28 @@ int main()
     std::cout << d2["test"] << std::endl;
     std::cout << jd2["test"] << std::endl;
 
+    jd2["test"] = 1539834;
+    std::cout << jd2["test"] << std::endl;
+
+    // Other
+    dict_t my_json;
+    my_json["test!"] = 5;
+    std::cout << my_json << std::endl;
+    dict_value my_json_value(my_json);
+    std::cout << my_json_value << std::endl;
+    json my_json_object(my_json);
+
+    my_json["test!"] = 128382812;
+
+    for (const auto& [k, v] : my_json)
+    {
+        std::cout << k << " = " << v << std::endl;
+    }
+
+    for (const auto& [k, v] : my_json_object.get_dict())
+    {
+        std::cout << k << " = " << v << std::endl;
+    }
+
     return 0;
 }
