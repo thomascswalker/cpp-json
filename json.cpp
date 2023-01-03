@@ -366,74 +366,6 @@ std::ostream& operator << (std::ostream& o, const JsonObject& j)
     return o << j.format();
 }
 
-// Parsing
-bool parseBool(std::string& input, JsonObject& result)
-{
-    if (input == "true")
-    {
-        result = JsonObject(true);
-        return true;
-    }
-    if (input == "false")
-    {
-        result = false;
-        return true;
-    }
-    return false;
-};
-
-bool parseInt(std::string& input, JsonObject& result)
-{
-    if (input.find(".") != std::string::npos)
-    {
-        return false;
-    }
-    try
-    {
-        result = JsonObject(std::stoi(input));
-        return true;
-    }
-    catch (std::invalid_argument& e)
-    {
-        return false;
-    }
-}
-
-bool parseDouble(std::string& input, JsonObject& result)
-{
-    try
-    {
-        result = JsonObject(std::stod(input));
-        return true;
-    }
-    catch (std::invalid_argument& e)
-    {
-        return false;
-    }
-}
-
-bool parseArray(std::string& input, JsonObject& result)
-{
-    if (!input.starts_with("[") && !input.ends_with("]"))
-    {
-        return false;
-    }
-    std::string d(input);
-    result = JsonObject(d);
-    return true;
-}
-
-bool parseDict(std::string& input, JsonObject& result)
-{
-    if (!input.starts_with("{") && !input.ends_with("}"))
-    {
-        return false;
-    }
-    std::string d(input);
-    result = JsonObject(d);
-    return true;
-}
-
 JsonObject& loadFile(std::string filename)
 {
     // Read file contents
@@ -445,9 +377,26 @@ JsonObject& loadFile(std::string filename)
         stream << file.rdbuf();         // Reading data
         data = stream.str();            // Put stream to data string
     }
+    else
+    {
+        std::cout << "File " << filename << " not found." << std::endl;
+        JsonObject j;
+        return j;
+    }
 
     // Tokenize string
     Lexer* l = new Lexer(data);
+
+    // Parse string into JSON object
+    Parser* p = new Parser(l);
+
+    return p->get();
+}
+
+JsonObject& loadString(std::string string)
+{
+    // Tokenize string
+    Lexer* l = new Lexer(string);
 
     // Parse string into JSON object
     Parser* p = new Parser(l);
