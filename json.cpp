@@ -379,8 +379,7 @@ JsonObject loadFile(std::string filename)
     }
     else
     {
-        std::cout << "File " << filename << " not found." << std::endl;
-        return JsonObject();
+        throw std::runtime_error("File not found: " + filename);
     }
 
     // Tokenize string

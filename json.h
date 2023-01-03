@@ -43,7 +43,19 @@ class Parser;
 std::string getIndent(int indent);
 std::string formatLine(const std::string& value, int indent, bool end);
 std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
+
+/// <summary>
+/// Load the given file as a JsonObject.
+/// </summary>
+/// <param name="filename">The full .json filename.</param>
+/// <returns>The JsonObject equivalent of the contents of the file.</returns>
 JsonObject loadFile(std::string filename);
+
+/// <summary>
+/// Load the given string as a JsonObject.
+/// </summary>
+/// <param name="string">The formatted JSON string.</param>
+/// <returns>The JsonObject equivalent of the JSON string.</returns>
 JsonObject loadString(std::string string);
 
 std::ostream& operator << (std::ostream& o, JsonArray& a);
