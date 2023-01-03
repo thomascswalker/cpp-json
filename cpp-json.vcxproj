@@ -137,13 +137,19 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inspection.h" />
     <ClInclude Include="json.h" />
+    <ClInclude Include="parser.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="file.json" />
+    <None Include="simple_example.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties file_1json__JsonSchema="https://json.schemastore.org/global.json" simple_3example_1json__JsonSchema="https://json.schemastore.org/global.json" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

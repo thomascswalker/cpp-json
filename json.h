@@ -1,16 +1,29 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-
-#include "inspection.h"
+#define DEBUG_TYPE true
 
 #define JSON_NAMESPACE_OPEN namespace JSON {
 #define JSON_NAMESPACE_CLOSE }
 #define JSON_NAMESPACE_USING using namespace JSON;
+
+#define IS_NUMBER(x) (((x - 48) | (57 - x)) >= 0 || x == 46)
+#define IS_QUOTE(x) x == 34
+#define IS_NOT_QUOTE(x) x != 34
+#define IS_COMMA(x) x == 44
+#define IS_LBRACE(x) x == 91
+#define IS_RBRACE(x) x == 93
+#define IS_LBRACKET(x) x == 123
+#define IS_RBRACKET(x) x == 125
+#define IS_COLON(x) x == 58
+
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 JSON_NAMESPACE_OPEN
 
@@ -18,20 +31,24 @@ JSON_NAMESPACE_OPEN
 static int CURRENT_INDENT = 0;
 
 // Forward declaration
-class json;
-typedef json json_t;
-typedef std::vector<json> array_t;
-typedef std::map<std::string, json> dict_t;
+class JsonObject;
+typedef JsonObject Json;
+typedef std::vector<JsonObject> JsonArray;
+typedef std::map<std::string, JsonObject> JsonDict;
 
-std::string get_indent(int indent);
-std::string format_line(const std::string& value, int indent, bool end);
-std::string format_dict(const std::string& key, const std::string& value, int indent, bool end);
+struct Token;
+class Lexer;
+class Parser;
 
-std::ostream& operator << (std::ostream& o, array_t& a);
-std::ostream& operator << (std::ostream& o, dict_t& d);
+std::string getIndent(int indent);
+std::string formatLine(const std::string& value, int indent, bool end);
+std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
+JsonObject& loadFile(std::string filename);
 
-// Values
-enum value_type
+std::ostream& operator << (std::ostream& o, JsonArray& a);
+std::ostream& operator << (std::ostream& o, JsonDict& d);
+
+enum ValueType
 {
     Null,           // nullptr
     Bool,           // true, false
@@ -45,7 +62,7 @@ enum value_type
 /// <summary>
 /// Base class for all JSON value types.
 /// </summary>
-class base_value
+class Value
 {
 public:
     /// <summary>
@@ -54,14 +71,14 @@ public:
     /// <returns>The string-formatted value.</returns>
     virtual std::string format() = 0;
 };
-typedef base_value value_t;
+typedef Value value_t;
 
-class null_value
+class NullValue
     : public value_t
 {
     void* m_value = nullptr;
 public:
-    null_value() { };
+    NullValue() { };
     std::string format();
     std::ostream& operator << (std::ostream& o)
     {
@@ -69,14 +86,14 @@ public:
     }
 };
 
-class bool_value
+class BoolValue
     : public value_t
 {
     bool m_value;
 public:
-    bool_value(bool value)
+    BoolValue(bool value)
         : m_value(value) { };
-    bool_value(const bool_value& other)
+    BoolValue(const BoolValue& other)
     {
         *this = other;
     }
@@ -88,14 +105,14 @@ public:
     }
 };
 
-class int_value
+class IntValue
     : public value_t
 {
     int m_value;
 public:
-    int_value(int value)
+    IntValue(int value)
         : m_value(value) { };
-    int_value(const int_value& other)
+    IntValue(const IntValue& other)
     {
         *this = other;
     }
@@ -107,14 +124,14 @@ public:
     }
 };
 
-class double_value
+class DoubleValue
     : public value_t
 {
     double m_value;
 public:
-    double_value(double value)
+    DoubleValue(double value)
         : m_value(value) { };
-    double_value(const double_value& other)
+    DoubleValue(const DoubleValue& other)
     {
         *this = other;
     }
@@ -126,14 +143,14 @@ public:
     }
 };
 
-class string_value
+class StringValue
     : public value_t
 {
     std::string m_value;
 public:
-    string_value(std::string value)
+    StringValue(std::string value)
         : m_value(value) { };
-    string_value(const string_value& other)
+    StringValue(const StringValue& other)
     {
         *this = other;
     }
@@ -145,25 +162,25 @@ public:
     }
 };
 
-class array_value
+class ArrayValue
     : public value_t
 {
-    array_t m_value;
+    JsonArray m_value;
 public:
-    array_value(const array_t value);
-    array_value(const array_value& other)
+    ArrayValue(const JsonArray value);
+    ArrayValue(const ArrayValue& other)
     {
         *this = other;
     }
-    array_t value();
+    JsonArray value();
     std::string format();
 
-    const array_value& operator = (const array_value& other)
+    const ArrayValue& operator = (const ArrayValue& other)
     {
         m_value = other.m_value;
         return *this;
     }
-    json& operator [] (const int index)
+    JsonObject& operator [] (const int index)
     {
         if (index > m_value.size())
         {
@@ -175,81 +192,420 @@ public:
     {
         return o << format();
     }
-    friend std::ostream& operator << (std::ostream& o, array_value& a);
+    friend std::ostream& operator << (std::ostream& o, ArrayValue& a);
 };
 
-class dict_value
+class DictValue
     : public value_t
 {
-    dict_t m_value;
+    JsonDict m_value;
 public:
-    dict_value(const dict_t value);
-    dict_value(const dict_value& other)
+    DictValue(const JsonDict value);
+    DictValue(const DictValue& other)
     {
         *this = other;
     }
-    dict_t value();
+    JsonDict value();
     std::string format();
 
-    const dict_value& operator = (const dict_value& other)
+    const DictValue& operator = (const DictValue& other)
     {
         m_value = other.m_value;
         return *this;
     }
-    json& operator [] (const std::string key)
+    JsonObject& operator [] (const std::string key)
     {
         return m_value[key];
     }
-    friend std::ostream& operator << (std::ostream& o, dict_value& d);
+    friend std::ostream& operator << (std::ostream& o, DictValue& d);
 };
 
 /// <summary>
 /// Base JSON object. Contains a wrapper for each possible value type, with constructors and accessors for each.
 /// </summary>
-class json
+class JsonObject
 {
     std::unique_ptr<value_t> m_value;
-    value_type m_type;
+    ValueType m_type;
 
 public:
     // Constructors
-    json();                         // Default
-    json(const json& other);        // Copy
-    json(bool value);               // Bool
-    json(int value);                // Integer
-    json(double value);             // Double
-    json(const std::string& value); // String
-    json(const array_t& value);     // Array
-    json(const dict_t& value);      // Dictionary
+    JsonObject();                         // Default
+    JsonObject(const JsonObject& other);  // Copy
+    JsonObject(bool value);               // Bool
+    JsonObject(int value);                // Integer
+    JsonObject(double value);             // Double
+    JsonObject(const std::string& value); // String
+    JsonObject(const JsonArray& value);   // Array
+    JsonObject(const JsonDict& value);    // Dictionary
 
     // Destructor
-    ~json() { };
+    ~JsonObject() { };
 
     // Methods
-    value_type type() { return m_type; }
+    ValueType type() { return m_type; }
 
-    bool_value& as_bool() const;
-    int_value& as_int() const;
-    double_value& as_double() const;
-    string_value& as_string() const;
-    array_value& as_array() const;
-    dict_value& as_dict() const;
+    BoolValue& asBool() const;
+    IntValue& asInt() const;
+    DoubleValue& asDouble() const;
+    StringValue& asString() const;
+    ArrayValue& asArray() const;
+    DictValue& asDict() const;
 
-    bool get_bool() const;
-    int get_int() const;
-    double get_double() const;
-    std::string get_string() const;
-    array_t get_array() const;
-    dict_t get_dict() const;
+    bool getBool() const;
+    int getInt() const;
+    double getDouble() const;
+    std::string getString() const;
+    JsonArray getArray() const;
+    JsonDict getDict() const;
 
     std::string format() const;
 
     // Operators
-    const json& operator = (const json& other);
-    json& operator [] (const std::string& key);
-    json& operator [] (int index);
-    friend std::ostream& operator << (std::ostream& o, json& j);
-    friend std::ostream& operator << (std::ostream& o, const json& j);
+    const JsonObject& operator = (const JsonObject& other);
+    JsonObject& operator [] (const std::string& key);
+    JsonObject& operator [] (int index);
+    friend std::ostream& operator << (std::ostream& o, JsonObject& j);
+    friend std::ostream& operator << (std::ostream& o, const JsonObject& j);
+};
+
+struct Token
+{
+    enum TokenType
+    {   
+        NULLVALUE,
+        LBRACE,
+        RBRACE,
+        LBRACKET,
+        RBRACKET,
+        COLON,
+        COMMA,
+        NUMBER,
+        STRING,
+        BOOLEAN
+    };
+
+    static std::string getTypeString(TokenType t)
+    {
+        switch (t)
+        {
+            case (NULLVALUE): return "NULL";
+            case (LBRACE): return "LBRACE";
+            case (RBRACE): return "RBRACE";
+            case (LBRACKET): return "LBRACKET";
+            case (RBRACKET): return "RBRACKET";
+            case (COLON): return "COLON";
+            case (COMMA): return "COMMA";
+            case (NUMBER): return "NUMBER";
+            case (STRING): return "STRING";
+            case (BOOLEAN): return "BOOLEAN";
+        }
+    }
+
+    TokenType tokenType = TokenType::NULLVALUE;
+    std::string value = "";
+    int start = 0;
+    int end = 0;
+};
+
+class Lexer
+{
+    std::string m_string;
+    int m_offset = 0;
+    Token m_lookAhead;
+
+    std::string sanitize(std::string& input)
+    {
+        std::string output;
+        bool inString = false;
+
+        // For every character in the input string...
+        for (auto& c : input)
+        {
+            // Remove new lines and end of lines
+            if (c == '\n' || c == '\0')
+            {
+                continue;
+            }
+
+            // Remove spaces ONLY when outside of a string
+            if (c == ' ' && inString == false)
+            {
+                continue;
+            }
+
+            // Flip-flop context of in or outside of a string
+            if (c == '"')
+            {
+                inString = !inString;
+            }
+
+            // Append current character to sanitized output
+            output += c;
+        }
+
+        return output;
+    }
+
+public:
+    std::vector<Token> tokens;
+
+    Lexer(std::string string)
+    {
+        m_string = sanitize(string);
+        while (canContinue())
+        {
+            Token t = next();
+            if (t.tokenType < 0)
+            {
+                continue;
+            }
+            tokens.push_back(t);
+        }
+    };
+
+    bool canContinue()
+    {
+        return m_offset < m_string.size();
+    }
+
+    Token next()
+    {
+        int start = m_offset;
+
+        // Numbers
+        if (IS_NUMBER(m_string[m_offset]))
+        {
+            std::string number;
+            while (IS_NUMBER(m_string[m_offset]))
+            {
+                number += m_string[m_offset];
+                m_offset++;
+            }
+            return Token(Token::NUMBER, number, start, m_offset);
+        }
+
+        // Strings
+        if (IS_QUOTE(m_string[m_offset]))
+        {
+            std::string string;
+
+            // Skip entry quote
+            m_offset++;
+
+            // Build the string from contents inside the quotes
+            while (IS_NOT_QUOTE(m_string[m_offset]))
+            {
+                string += m_string[m_offset];
+                m_offset++;
+            }
+
+            // Skip exit quote
+            m_offset++;
+            return Token(Token::STRING, string, start, m_offset);
+        }
+
+        // Booleans
+        if (m_string.substr(m_offset, 4) == "true")
+        {
+            m_offset += 4;
+            return Token(Token::BOOLEAN, "true", start, m_offset);
+        }
+        if (m_string.substr(m_offset, 5) == "false")
+        {
+            m_offset += 5;
+            return Token(Token::BOOLEAN, "false", start, m_offset);
+        }
+
+        // Separators
+        if (IS_COMMA(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::COMMA, ",", start, m_offset);
+        }
+
+        if (IS_LBRACE(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::LBRACE, "[", start, m_offset);
+        }
+
+        if (IS_RBRACE(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::RBRACE, "]", start, m_offset);
+        }
+
+        if (IS_LBRACKET(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::LBRACKET, "{", start, m_offset);
+        }
+
+        if (IS_RBRACKET(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::RBRACKET, "}", start, m_offset);
+        }
+
+        if (IS_COLON(m_string[m_offset]))
+        {
+            m_offset++;
+            return Token(Token::COLON, ":", start, m_offset);
+        }
+
+        std::string msg("Invalid character " + m_string[m_offset]);
+        throw std::runtime_error(msg);
+    }
+};
+
+class Parser
+{
+    Lexer* m_lexer;
+    JsonObject m_json;
+
+    Token* current;
+    int pos = 0;
+
+    void next()
+    {
+        current++;
+        pos++;
+        //std::cout << current->value << std::endl;
+    }
+
+    bool canContinue()
+    {
+        return pos < m_lexer->tokens.size();
+    }
+
+public:
+    Parser(Lexer* lexer)
+        : m_lexer(lexer)
+    {
+        current = &m_lexer->tokens[0];
+        m_json = parse();
+    };
+
+    JsonObject parse()
+    {
+        // Null
+        if (current->tokenType == Token::NULLVALUE)
+        {
+            return JsonObject();
+        }
+
+        // Numbers
+        if (current->tokenType == Token::NUMBER)
+        {
+            std::string value = current->value;
+            next();
+            // Decimal values
+            if (value.find(".") != std::string::npos)
+            {
+                return JsonObject(std::stod(value));
+            }
+            // Integer values
+            else
+            {
+                return JsonObject(std::stoi(value));
+            }
+        }
+
+        // Strings
+        if (current->tokenType == Token::STRING)
+        {
+            std::string value = current->value;
+            next();
+            return JsonObject(value);
+        }
+
+        // Booleans
+        if (current->tokenType == Token::BOOLEAN)
+        {
+            std::string value = current->value;
+            next();
+            return (value == "true" ? JsonObject(true) : JsonObject(false));
+        }
+
+        // Arrays
+        if (current->tokenType == Token::LBRACE)
+        {
+            next();  // Skip start brace
+            JsonArray array;
+            while (current->tokenType != Token::RBRACE)
+            {
+                // Skip commas
+                if (current->tokenType == Token::COMMA)
+                {
+                    next();
+                    continue;
+                }
+                JsonObject value = parse(); // Parse the value at this position
+
+                // TODO: Figure out why this is needed, otherwise it breaks
+                if (value.type() == Null)
+                {
+                    break;
+                }
+
+                // Add to our array the value we parsed
+                array.push_back(value);
+            }
+
+            next(); // Skip end brace
+            return JsonObject(array);
+        }
+
+        // Dictionaries
+        if (current->tokenType == Token::LBRACKET)
+        {
+            next();  // Skip start bracket
+            JsonDict dict;
+
+            while (current->tokenType != Token::RBRACKET &&
+                   current->tokenType > 0)
+            {
+                // Parse key
+                if (current->tokenType != Token::STRING)
+                {
+                    throw std::runtime_error("Expected string key");
+                }
+                std::string key = current->value;
+                next(); // Move from key to expected colon
+
+                // Parse value
+                if (current->tokenType != Token::COLON)
+                {
+                    throw std::runtime_error("Expected colon");
+                }
+                next(); // Move from colon to expected value
+
+                // Construct dict obj
+                JsonObject value = parse(); // Parse value
+                dict[key] = value;
+
+                // If there's a comma, skip it
+                if (current->tokenType == Token::COMMA)
+                {
+                    next();
+                    continue;
+                }
+                // If we're at the end of the dictionary, break the loop
+                if (current->tokenType == Token::RBRACKET)
+                {
+                    break;
+                }
+            }
+
+            next(); // Skip end bracket
+            return JsonObject(dict);
+        }
+
+        throw std::runtime_error("Unable to parse!");
+    }
+
+    JsonObject& get() { return m_json; }
 };
 
 JSON_NAMESPACE_CLOSE

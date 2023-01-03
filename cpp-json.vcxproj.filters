@@ -26,12 +26,15 @@
     <ClInclude Include="json.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inspection.h">
+    <ClInclude Include="parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="file.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="simple_example.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -2,16 +2,16 @@
 
 JSON_NAMESPACE_OPEN
 
-std::string get_indent(int indent = 0)
+std::string getIndent(int indent = 0)
 {
     auto size = indent * 4;
     return std::string(size, ' ');
 }
 
-std::string format_line(const std::string& value, int indent, bool end)
+std::string formatLine(const std::string& value, int indent, bool end)
 {
     std::string line;
-    line += get_indent(indent);
+    line += getIndent(indent);
     line += value;
     if (!end)
     {
@@ -21,10 +21,10 @@ std::string format_line(const std::string& value, int indent, bool end)
     return line;
 }
 
-std::string format_dict(const std::string& key, const std::string& value, int indent, bool end)
+std::string formatLine(const std::string& key, const std::string& value, int indent, bool end)
 {
     std::string line;
-    line += get_indent(indent);
+    line += getIndent(indent);
     line += "\"" + key + "\"" + ": " + value;
     if (!end)
     {
@@ -35,100 +35,116 @@ std::string format_dict(const std::string& key, const std::string& value, int in
 }
 
 // General operators
-std::ostream& operator << (std::ostream& o, array_t& a)
+std::ostream& operator << (std::ostream& o, JsonArray& a)
 {
-    return o << json(a).format();
+    return o << JsonObject(a).format();
 }
 
-std::ostream& operator << (std::ostream& o, dict_t& d)
+std::ostream& operator << (std::ostream& o, JsonDict& d)
 {
-    return o << json(d).format();
+    return o << JsonObject(d).format();
 }
 
 // Null
-std::string null_value::format()
+std::string NullValue::format()
 {
     return "Null";
 }
 
 // Bool
-bool bool_value::value()
+bool BoolValue::value()
 {
     return m_value;
 }
 
-std::string bool_value::format()
+std::string BoolValue::format()
 {
-    std::string bool_string(m_value == true ? std::string("true") : std::string("false"));
-    return bool_string;
+    std::string boolString(m_value == true ? std::string("true") : std::string("false"));
+#if DEBUG_TYPE == true
+    boolString += " (bool)";
+#endif
+    return boolString;
 }
 
 // Int
-int int_value::value()
+int IntValue::value()
 {
     return m_value;
 }
 
-std::string int_value::format()
+std::string IntValue::format()
 {
-    return std::to_string(m_value);
+    std::string intString = std::to_string(m_value);
+#if DEBUG_TYPE == true
+    intString += " (int)";
+#endif
+    return intString;
 }
 
 // Double
-double double_value::value()
+double DoubleValue::value()
 {
     return m_value;
 }
 
-std::string double_value::format()
+std::string DoubleValue::format()
 {
-    return std::to_string(m_value);
+    std::string doubleString = std::to_string(m_value);
+#if DEBUG_TYPE == true
+    doubleString += " (double)";
+#endif
+    return doubleString;
 }
 
 // String
-std::string string_value::value()
+std::string StringValue::value()
 {
     return m_value;
 }
 
-std::string string_value::format()
+std::string StringValue::format()
 {
-    return "\"" + m_value + "\"";
+
+    std::string string = "\"" + m_value + "\"";
+#if DEBUG_TYPE == true
+    string += " (string)";
+#endif
+    return string;
 }
 
 // Array
-array_value::array_value(const array_t value)
+ArrayValue::ArrayValue(const JsonArray value)
 {
     m_value.clear();
-    for (const json& v : value)
+    for (const JsonObject& v : value)
     {
         m_value.emplace_back(v);
     }
 };
 
-array_t array_value::value()
+JsonArray ArrayValue::value()
 {
     return m_value;
 }
 
-std::string array_value::format()
+std::string ArrayValue::format()
 {
-    std::string array_string = "[\n";
+    std::string arrayString = "[\n";
     CURRENT_INDENT++;
     int count = 1;
     for (auto& v : m_value)
     {
         bool at_end = (count == m_value.size());
-        array_string += format_line(v.format(), CURRENT_INDENT, at_end);
+        arrayString += formatLine(v.format(), CURRENT_INDENT, at_end);
         count++;
     }
     CURRENT_INDENT--;
-    array_string += get_indent(CURRENT_INDENT) + "]";
-    return array_string;
+    arrayString += getIndent(CURRENT_INDENT) + "]";
+    return arrayString;
 }
 
 // Dictionary
-dict_value::dict_value(const dict_t value)
+DictValue::DictValue(const JsonDict value)
 {
     for (const auto& [k, v] : value)
     {
@@ -136,131 +152,131 @@ dict_value::dict_value(const dict_t value)
     }
 };
 
-dict_t dict_value::value()
+JsonDict DictValue::value()
 {
     return m_value;
 }
 
-std::string dict_value::format()
+std::string DictValue::format()
 {
-    std::string dict_string = "{\n";
+    std::string dictString = "{\n";
     CURRENT_INDENT++;
     int count = 1;
     for (auto& [k, v] : m_value)
     {
         bool at_end = (count == m_value.size());
-        std::string new_line = (v.type() == Dictionary || v.type() == Array) ? ("\n" + get_indent(CURRENT_INDENT)) : "";
-        dict_string += format_dict(k, new_line + v.format(), CURRENT_INDENT, at_end);
+        std::string new_line = (v.type() == Dictionary || v.type() == Array) ? ("\n" + getIndent(CURRENT_INDENT)) : "";
+        dictString += formatLine(k, new_line + v.format(), CURRENT_INDENT, at_end);
         count++;
     }
     CURRENT_INDENT--;
-    dict_string += get_indent(CURRENT_INDENT) + "}";
-    return dict_string;
+    dictString += getIndent(CURRENT_INDENT) + "}";
+    return dictString;
 }
 
 // JSON Object
-json::json()
+JsonObject::JsonObject()
 {
     m_value = nullptr;
     m_type = Null;
 }
-json::json(const json& other)
+JsonObject::JsonObject(const JsonObject& other)
 {
     *this = other;
 }
-json::json(bool value)
+JsonObject::JsonObject(bool value)
 {
-    m_value = std::make_unique<bool_value>(value);
+    m_value = std::make_unique<BoolValue>(value);
     m_type = Bool;
 }
-json::json(int value)
+JsonObject::JsonObject(int value)
 {
-    m_value = std::make_unique<int_value>(value);
+    m_value = std::make_unique<IntValue>(value);
     m_type = Int;
 }
-json::json(double value)
+JsonObject::JsonObject(double value)
 {
-    m_value = std::make_unique<double_value>(value);
+    m_value = std::make_unique<DoubleValue>(value);
     m_type = Double;
 }
-json::json(const std::string& value)
+JsonObject::JsonObject(const std::string& value)
 {
-    m_value = std::make_unique<string_value>(value);
+    m_value = std::make_unique<StringValue>(value);
     m_type = String;
 }
-json::json(const array_t& value)
+JsonObject::JsonObject(const JsonArray& value)
 {
 
-    m_value = std::make_unique<array_value>(value);
+    m_value = std::make_unique<ArrayValue>(value);
     m_type = Array;
 }
-json::json(const dict_t& value)
+JsonObject::JsonObject(const JsonDict& value)
 {
-    m_value = std::make_unique<dict_value>(value);
+    m_value = std::make_unique<DictValue>(value);
     m_type = Dictionary;
 }
 
-bool_value& json::as_bool() const
+BoolValue& JsonObject::asBool() const
 {
-    return *static_cast<bool_value*>(m_value.get());
+    return *static_cast<BoolValue*>(m_value.get());
 }
 
-int_value& json::as_int() const
+IntValue& JsonObject::asInt() const
 {
-    return *static_cast<int_value*>(m_value.get());
+    return *static_cast<IntValue*>(m_value.get());
 }
 
-double_value& json::as_double() const
+DoubleValue& JsonObject::asDouble() const
 {
-    return *static_cast<double_value*>(m_value.get());
+    return *static_cast<DoubleValue*>(m_value.get());
 }
 
-string_value& json::as_string() const
+StringValue& JsonObject::asString() const
 {
-    return *static_cast<string_value*>(m_value.get());
+    return *static_cast<StringValue*>(m_value.get());
 }
 
-array_value& json::as_array() const
+ArrayValue& JsonObject::asArray() const
 {
-    return *static_cast<array_value*>(m_value.get());
+    return *static_cast<ArrayValue*>(m_value.get());
 }
 
-dict_value& json::as_dict() const
+DictValue& JsonObject::asDict() const
 {
-    return *static_cast<dict_value*>(m_value.get());
+    return *static_cast<DictValue*>(m_value.get());
 }
 
-bool json::get_bool() const
+bool JsonObject::getBool() const
 {
-    return as_bool().value();
+    return asBool().value();
 }
 
-int json::get_int() const
+int JsonObject::getInt() const
 {
-    return as_int().value();
+    return asInt().value();
 }
 
-double json::get_double() const
+double JsonObject::getDouble() const
 {
-    return as_double().value();
+    return asDouble().value();
 }
 
-std::string json::get_string() const
+std::string JsonObject::getString() const
 {
-    return as_string().value();
+    return asString().value();
 }
 
-array_t json::get_array() const
+JsonArray JsonObject::getArray() const
 {
-    return as_array().value();
+    return asArray().value();
 }
 
-dict_t json::get_dict() const
+JsonDict JsonObject::getDict() const
 {
-    return as_dict().value();
+    return asDict().value();
 }
 
-std::string json::format() const
+std::string JsonObject::format() const
 {
     if (m_value.get() == nullptr)
     {
@@ -270,38 +286,38 @@ std::string json::format() const
     return m_value.get()->format();
 }
 
-const json& json::operator = (const json& other)
+const JsonObject& JsonObject::operator = (const JsonObject& other)
 {
     switch (other.m_type)
     {
         case (Bool):
         {
-            m_value = std::make_unique<bool_value>(other.get_bool());
+            m_value = std::make_unique<BoolValue>(other.getBool());
             break;
         }
         case (Int):
         {
-            m_value = std::make_unique<int_value>(other.get_int());
+            m_value = std::make_unique<IntValue>(other.getInt());
             break;
         }
         case (Double):
         {
-            m_value = std::make_unique<double_value>(other.get_double());
+            m_value = std::make_unique<DoubleValue>(other.getDouble());
             break;
         }
         case (String):
         {
-            m_value = std::make_unique<string_value>(other.get_string());
+            m_value = std::make_unique<StringValue>(other.getString());
             break;
         }
         case (Array):
         {
-            m_value = std::make_unique<array_value>(other.get_array());
+            m_value = std::make_unique<ArrayValue>(other.getArray());
             break;
         }
         case (Dictionary):
         {
-            m_value = std::make_unique<dict_value>(other.get_dict());
+            m_value = std::make_unique<DictValue>(other.getDict());
             break;
         }
         case (Null):
@@ -311,44 +327,132 @@ const json& json::operator = (const json& other)
     return *this;
 }
 
-json& json::operator[](const std::string& key)
+JsonObject& JsonObject::operator[](const std::string& key)
 {
     if (m_type != Dictionary && m_value == nullptr)
     {
         throw std::runtime_error("Invalid type, wanted Dictionary");
     }
-    return as_dict()[key];
+    return asDict()[key];
 }
 
-json& json::operator[](int index)
+JsonObject& JsonObject::operator[](int index)
 {
     std::cout << m_type << std::endl;
     if (m_type != Array)
     {
         throw std::runtime_error("Invalid type, wanted Array");
     }
-    return as_array()[index];
+    return asArray()[index];
 }
 
-std::ostream& operator<<(std::ostream& o, array_value& a)
+std::ostream& operator<<(std::ostream& o, ArrayValue& a)
 {
     return o << a.format();
 }
 
-std::ostream& operator << (std::ostream& o, dict_value& d)
+std::ostream& operator << (std::ostream& o, DictValue& d)
 {
     return o << d.format();
 }
 
-std::ostream& operator << (std::ostream& o, json& j)
+std::ostream& operator << (std::ostream& o, JsonObject& j)
 {
     return o << j.format();
 }
 
-std::ostream& operator << (std::ostream& o, const json& j)
+std::ostream& operator << (std::ostream& o, const JsonObject& j)
 {
     return o << j.format();
 }
 
+// Parsing
+bool parseBool(std::string& input, JsonObject& result)
+{
+    if (input == "true")
+    {
+        result = JsonObject(true);
+        return true;
+    }
+    if (input == "false")
+    {
+        result = false;
+        return true;
+    }
+    return false;
+};
+
+bool parseInt(std::string& input, JsonObject& result)
+{
+    if (input.find(".") != std::string::npos)
+    {
+        return false;
+    }
+    try
+    {
+        result = JsonObject(std::stoi(input));
+        return true;
+    }
+    catch (std::invalid_argument& e)
+    {
+        return false;
+    }
+}
+
+bool parseDouble(std::string& input, JsonObject& result)
+{
+    try
+    {
+        result = JsonObject(std::stod(input));
+        return true;
+    }
+    catch (std::invalid_argument& e)
+    {
+        return false;
+    }
+}
+
+bool parseArray(std::string& input, JsonObject& result)
+{
+    if (!input.starts_with("[") && !input.ends_with("]"))
+    {
+        return false;
+    }
+    std::string d(input);
+    result = JsonObject(d);
+    return true;
+}
+
+bool parseDict(std::string& input, JsonObject& result)
+{
+    if (!input.starts_with("{") && !input.ends_with("}"))
+    {
+        return false;
+    }
+    std::string d(input);
+    result = JsonObject(d);
+    return true;
+}
+
+JsonObject& loadFile(std::string filename)
+{
+    // Read file contents
+    std::ifstream file(filename);    //taking file as inputstream
+    std::string data;
+    if (file)
+    {
+        std::ostringstream stream;      // New stream
+        stream << file.rdbuf();         // Reading data
+        data = stream.str();            // Put stream to data string
+    }
+
+    // Tokenize string
+    Lexer* l = new Lexer(data);
+
+    // Parse string into JSON object
+    Parser* p = new Parser(l);
+
+    return p->get();
+}
 
 JSON_NAMESPACE_CLOSE
