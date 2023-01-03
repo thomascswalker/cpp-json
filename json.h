@@ -1,7 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
-#define DEBUG_TYPE true
+#define DEBUG_TYPE false
 
 #define JSON_NAMESPACE_OPEN namespace JSON {
 #define JSON_NAMESPACE_CLOSE }
@@ -44,10 +44,15 @@ std::string getIndent(int indent);
 std::string formatLine(const std::string& value, int indent, bool end);
 std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
 JsonObject& loadFile(std::string filename);
+JsonObject& loadString(std::string string);
 
 std::ostream& operator << (std::ostream& o, JsonArray& a);
 std::ostream& operator << (std::ostream& o, JsonDict& d);
 
+/// <summary>
+/// JSON value types, with numbers slightly modified for C++.
+/// Number becomes both Int and Double.
+/// </summary>
 enum ValueType
 {
     Null,           // nullptr
@@ -71,8 +76,14 @@ public:
     /// <returns>The string-formatted value.</returns>
     virtual std::string format() = 0;
 };
+/// <summary>
+/// Typedef alias for Value.
+/// </summary>
 typedef Value value_t;
 
+/// <summary>
+/// Null JSON value. Represents the 'null' keyword.
+/// </summary>
 class NullValue
     : public value_t
 {
@@ -86,6 +97,9 @@ public:
     }
 };
 
+/// <summary>
+/// Boolean JSON value. Represents the 'true' and 'false' keywords.
+/// </summary>
 class BoolValue
     : public value_t
 {
@@ -105,6 +119,9 @@ public:
     }
 };
 
+/// <summary>
+/// Number JSON value. Represents numbers which have no decimals (integers).
+/// </summary>
 class IntValue
     : public value_t
 {
@@ -124,6 +141,9 @@ public:
     }
 };
 
+/// <summary>
+/// Number JSON value. Represents numbers which have decimals.
+/// </summary>
 class DoubleValue
     : public value_t
 {
@@ -143,6 +163,10 @@ public:
     }
 };
 
+/// <summary>
+/// String JSON value. Does not contain wrapped quotes, they are not necessary because
+/// of the defined type.
+/// </summary>
 class StringValue
     : public value_t
 {
@@ -162,6 +186,10 @@ public:
     }
 };
 
+/// <summary>
+/// Array JSON value. Contains a single array of [JsonObject, ...].
+/// This is defined with the typedef JsonArray.
+/// </summary>
 class ArrayValue
     : public value_t
 {
@@ -195,6 +223,10 @@ public:
     friend std::ostream& operator << (std::ostream& o, ArrayValue& a);
 };
 
+/// <summary>
+/// Array JSON value. Contains a single map of {{std::string, JsonObject}, ...}.
+/// This is defined with the typedef JsonDict.
+/// </summary>
 class DictValue
     : public value_t
 {
@@ -242,8 +274,12 @@ public:
     // Destructor
     ~JsonObject() { };
 
-    // Methods
+    
+    /// <summary>
+    /// Returns the ValueType of this JsonObject.
+    /// </summary>
     ValueType type() { return m_type; }
+
 
     BoolValue& asBool() const;
     IntValue& asInt() const;
@@ -259,6 +295,9 @@ public:
     JsonArray getArray() const;
     JsonDict getDict() const;
 
+    /// <summary>
+    /// Formats this JsonObject as a std::string.
+    /// </summary>
     std::string format() const;
 
     // Operators
@@ -269,58 +308,53 @@ public:
     friend std::ostream& operator << (std::ostream& o, const JsonObject& j);
 };
 
+/// <summary>
+/// Token struct for lexing. 
+/// </summary>
 struct Token
 {
     enum TokenType
     {   
-        NULLVALUE,
-        LBRACE,
-        RBRACE,
-        LBRACKET,
-        RBRACKET,
-        COLON,
-        COMMA,
-        NUMBER,
-        STRING,
-        BOOLEAN
+        Null,
+        LBrace,
+        RBrace,
+        LBracket,
+        RBracket,
+        Colon,
+        Comma,
+        Number,
+        String,
+        Boolean
     };
 
-    static std::string getTypeString(TokenType t)
-    {
-        switch (t)
-        {
-            case (NULLVALUE): return "NULL";
-            case (LBRACE): return "LBRACE";
-            case (RBRACE): return "RBRACE";
-            case (LBRACKET): return "LBRACKET";
-            case (RBRACKET): return "RBRACKET";
-            case (COLON): return "COLON";
-            case (COMMA): return "COMMA";
-            case (NUMBER): return "NUMBER";
-            case (STRING): return "STRING";
-            case (BOOLEAN): return "BOOLEAN";
-        }
-    }
-
-    TokenType tokenType = TokenType::NULLVALUE;
+    TokenType type    = TokenType::Null;
     std::string value = "";
-    int start = 0;
-    int end = 0;
 };
 
+/// <summary>
+/// Lexer for tokenizing the given input string. By default, the input string will be sanitized
+/// (removing whitespace, new lines, returns, end of file, etc.)
+/// </summary>
 class Lexer
 {
     std::string m_string;
     int m_offset = 0;
-    Token m_lookAhead;
 
+    /// <summary>
+    /// Sanitizes the given input string. This will remove new lines, end of lines, and whitespace outside
+    /// of strings.
+    /// </summary>
+    /// <param name="input">The input string to sanitize.</param>
+    /// <returns>The sanitized string.</returns>
     std::string sanitize(std::string& input)
     {
         std::string output;
+
+        // Whether we're inside a string or not at the current character
         bool inString = false;
 
         // For every character in the input string...
-        for (auto& c : input)
+        for (char& c : input)
         {
             // Remove new lines and end of lines
             if (c == '\n' || c == '\0')
@@ -352,23 +386,41 @@ public:
 
     Lexer(std::string string)
     {
+        // Sanitize input string
         m_string = sanitize(string);
+
+        // While we are able to continue, keep going to the next token
         while (canContinue())
         {
+            // Get next token
             Token t = next();
-            if (t.tokenType < 0)
+
+            // TODO: Figure out why type is sometimes invalid.
+            // This is a catch-all for invalid enum values.
+            if (t.type < 0)
             {
                 continue;
             }
+
+            // Add to token array.
             tokens.push_back(t);
         }
     };
 
+    /// <summary>
+    /// Determines if we can continue tokenization if the current character position is not at the end
+    /// of the sanitized string.
+    /// </summary>
     bool canContinue()
     {
         return m_offset < m_string.size();
     }
 
+    /// <summary>
+    /// Determines the next token and adds it to the array of tokens. This will increment `m_offset` by
+    /// however long the token is determined to be.
+    /// </summary>
+    /// <returns>The token which is constructed.</returns>
     Token next()
     {
         int start = m_offset;
@@ -382,7 +434,7 @@ public:
                 number += m_string[m_offset];
                 m_offset++;
             }
-            return Token(Token::NUMBER, number, start, m_offset);
+            return Token(Token::Number, number);
         }
 
         // Strings
@@ -402,81 +454,234 @@ public:
 
             // Skip exit quote
             m_offset++;
-            return Token(Token::STRING, string, start, m_offset);
+            return Token(Token::String, string);
         }
 
         // Booleans
         if (m_string.substr(m_offset, 4) == "true")
         {
             m_offset += 4;
-            return Token(Token::BOOLEAN, "true", start, m_offset);
+            return Token(Token::Boolean, "true");
         }
         if (m_string.substr(m_offset, 5) == "false")
         {
             m_offset += 5;
-            return Token(Token::BOOLEAN, "false", start, m_offset);
+            return Token(Token::Boolean, "false");
+        }
+
+        // Null
+        if (m_string.substr(m_offset, 4) == "null")
+        {
+            m_offset += 4;
+            return Token(Token::Null);
         }
 
         // Separators
         if (IS_COMMA(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::COMMA, ",", start, m_offset);
+            return Token(Token::Comma);
         }
 
         if (IS_LBRACE(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::LBRACE, "[", start, m_offset);
+            return Token(Token::LBrace);
         }
 
         if (IS_RBRACE(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::RBRACE, "]", start, m_offset);
+            return Token(Token::RBrace);
         }
 
         if (IS_LBRACKET(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::LBRACKET, "{", start, m_offset);
+            return Token(Token::LBracket);
         }
 
         if (IS_RBRACKET(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::RBRACKET, "}", start, m_offset);
+            return Token(Token::RBracket);
         }
 
         if (IS_COLON(m_string[m_offset]))
         {
             m_offset++;
-            return Token(Token::COLON, ":", start, m_offset);
+            return Token(Token::Colon);
         }
 
+        // In all other instances, we have a malformed JSON file. Throw an error.
         std::string msg("Invalid character " + m_string[m_offset]);
         throw std::runtime_error(msg);
     }
 };
 
+/// <summary>
+/// Parser which ingests a Lexer (essentially a list of tokens) and builds an Abstract Syntax Tree (AST) from it.
+/// The final output of this AST is a JsonObject itself.
+/// </summary>
 class Parser
 {
+    // The lexer which contains the tokens to parse.
     Lexer* m_lexer;
+
+    // The output JsonObject.
     JsonObject m_json;
 
+    // The current token pointer.
     Token* current;
+
+    // The current token position.
     int pos = 0;
 
+    /// <summary>
+    /// Iterate to the next token as well as bump the position by 1.
+    /// </summary>
     void next()
     {
         current++;
         pos++;
-        //std::cout << current->value << std::endl;
     }
 
+    /// <summary>
+    /// Determines if we can continue if the current position is not at the end of the token list.
+    /// </summary>
     bool canContinue()
     {
         return pos < m_lexer->tokens.size();
+    }
+
+    /// <summary>
+    /// Recursively parse the current token. Assuming the JSON string is valid and begins with either
+    /// a dictionary or an array, the first token will begin the recursion.
+    /// </summary>
+    /// <returns></returns>
+    JsonObject parse()
+    {
+        // Null
+        switch (current->type)
+        {
+            case (Token::Null):
+            {
+                next(); // Go to next token
+                return JsonObject();
+            }
+
+            // Booleans
+            case (Token::Boolean):
+            {
+                std::string value = current->value;
+                next(); // Go to next token
+                return (value == "true" ? JsonObject(true) : JsonObject(false));
+            }
+
+            // Numbers
+            case (Token::Number):
+            {
+                std::string value = current->value;
+                next(); // Go to next token
+                // Decimal values
+                if (value.find(".") != std::string::npos)
+                {
+                    return JsonObject(std::stod(value));
+                }
+                // Integer values
+                else
+                {
+                    return JsonObject(std::stoi(value));
+                }
+            }
+
+            // Strings
+            case (Token::String):
+            {
+                std::string value = current->value;
+                next(); // Go to next token
+                return JsonObject(value);
+            }
+
+            // Arrays
+            case (Token::LBrace):
+            {
+                next();  // Skip start brace
+                JsonArray array;
+                while (current->type != Token::RBrace)
+                {
+                    // Skip commas
+                    if (current->type == Token::Comma)
+                    {
+                        next(); // Go to next token
+                        continue;
+                    }
+                    JsonObject value = parse(); // Recursively parse value
+
+                    // TODO: Figure out why this is needed, otherwise it breaks
+                    if (value.type() == Null)
+                    {
+                        break;
+                    }
+
+                    // Add to our array the value we parsed
+                    array.push_back(value);
+                }
+
+                next(); // Skip end brace
+                return JsonObject(array);
+            }
+
+            // Dictionaries
+            case (Token::LBracket):
+            {
+                next();  // Skip start bracket
+                JsonDict dict;
+
+                while (current->type != Token::RBracket &&
+                       current->type > 0)
+                {
+                    // Parse key
+                    if (current->type != Token::String)
+                    {
+                        throw std::runtime_error("Expected string key");
+                    }
+                    std::string key = current->value;
+                    next(); // Move from key to expected colon
+
+                    // Parse value
+                    if (current->type != Token::Colon)
+                    {
+                        throw std::runtime_error("Expected colon");
+                    }
+                    next(); // Move from colon to expected value
+
+                    // Construct dict obj
+                    JsonObject value = parse(); // Recursively parse value
+                    dict[key] = value;
+
+                    // If there's a comma, skip it
+                    if (current->type == Token::Comma)
+                    {
+                        next();
+                        continue;
+                    }
+                    // If we're at the end of the dictionary, break the loop
+                    if (current->type == Token::RBracket)
+                    {
+                        break;
+                    }
+                }
+
+                next(); // Skip end bracket
+                return JsonObject(dict);
+            }
+
+            default:
+            {
+                throw std::runtime_error("Unable to parse!");
+            }
+        }
     }
 
 public:
@@ -487,124 +692,9 @@ public:
         m_json = parse();
     };
 
-    JsonObject parse()
-    {
-        // Null
-        if (current->tokenType == Token::NULLVALUE)
-        {
-            return JsonObject();
-        }
-
-        // Numbers
-        if (current->tokenType == Token::NUMBER)
-        {
-            std::string value = current->value;
-            next();
-            // Decimal values
-            if (value.find(".") != std::string::npos)
-            {
-                return JsonObject(std::stod(value));
-            }
-            // Integer values
-            else
-            {
-                return JsonObject(std::stoi(value));
-            }
-        }
-
-        // Strings
-        if (current->tokenType == Token::STRING)
-        {
-            std::string value = current->value;
-            next();
-            return JsonObject(value);
-        }
-
-        // Booleans
-        if (current->tokenType == Token::BOOLEAN)
-        {
-            std::string value = current->value;
-            next();
-            return (value == "true" ? JsonObject(true) : JsonObject(false));
-        }
-
-        // Arrays
-        if (current->tokenType == Token::LBRACE)
-        {
-            next();  // Skip start brace
-            JsonArray array;
-            while (current->tokenType != Token::RBRACE)
-            {
-                // Skip commas
-                if (current->tokenType == Token::COMMA)
-                {
-                    next();
-                    continue;
-                }
-                JsonObject value = parse(); // Parse the value at this position
-
-                // TODO: Figure out why this is needed, otherwise it breaks
-                if (value.type() == Null)
-                {
-                    break;
-                }
-
-                // Add to our array the value we parsed
-                array.push_back(value);
-            }
-
-            next(); // Skip end brace
-            return JsonObject(array);
-        }
-
-        // Dictionaries
-        if (current->tokenType == Token::LBRACKET)
-        {
-            next();  // Skip start bracket
-            JsonDict dict;
-
-            while (current->tokenType != Token::RBRACKET &&
-                   current->tokenType > 0)
-            {
-                // Parse key
-                if (current->tokenType != Token::STRING)
-                {
-                    throw std::runtime_error("Expected string key");
-                }
-                std::string key = current->value;
-                next(); // Move from key to expected colon
-
-                // Parse value
-                if (current->tokenType != Token::COLON)
-                {
-                    throw std::runtime_error("Expected colon");
-                }
-                next(); // Move from colon to expected value
-
-                // Construct dict obj
-                JsonObject value = parse(); // Parse value
-                dict[key] = value;
-
-                // If there's a comma, skip it
-                if (current->tokenType == Token::COMMA)
-                {
-                    next();
-                    continue;
-                }
-                // If we're at the end of the dictionary, break the loop
-                if (current->tokenType == Token::RBRACKET)
-                {
-                    break;
-                }
-            }
-
-            next(); // Skip end bracket
-            return JsonObject(dict);
-        }
-
-        throw std::runtime_error("Unable to parse!");
-    }
-
+    /// <summary>
+    /// Returns the JsonObject which was parsed from the file (or string).
+    /// </summary>
     JsonObject& get() { return m_json; }
 };
 

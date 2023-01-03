@@ -31,10 +31,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="file.json">
+    <None Include="gltf.json">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="simple_example.json">
+    <None Include="simple.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="complex.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="large.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
