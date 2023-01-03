@@ -1,9 +1,9 @@
-#include <iostream>
-#include "parser.h"
+#include "json.h"
+using namespace JSON;
 
 int main()
 {
-    auto j = JSON::JsonObject(true);
+    JsonObject j = loadFile("file.json");
     std::cout << j << std::endl;
     return 0;
 }

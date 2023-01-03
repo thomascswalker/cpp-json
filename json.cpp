@@ -59,8 +59,11 @@ bool BoolValue::value()
 
 std::string BoolValue::format()
 {
-    std::string bool_string(m_value == true ? std::string("true") : std::string("false"));
-    return bool_string;
+    std::string boolString(m_value == true ? std::string("true") : std::string("false"));
+#if DEBUG_TYPE == true
+    boolString += " (bool)";
+#endif
+    return boolString;
 }
 
 // Int
@@ -71,7 +74,11 @@ int IntValue::value()
 
 std::string IntValue::format()
 {
-    return std::to_string(m_value);
+    std::string intString = std::to_string(m_value);
+#if DEBUG_TYPE == true
+    intString += " (int)";
+#endif
+    return intString;
 }
 
 // Double
@@ -82,7 +89,11 @@ double DoubleValue::value()
 
 std::string DoubleValue::format()
 {
-    return std::to_string(m_value);
+    std::string doubleString = std::to_string(m_value);
+#if DEBUG_TYPE == true
+    doubleString += " (double)";
+#endif
+    return doubleString;
 }
 
 // String
@@ -93,7 +104,12 @@ std::string StringValue::value()
 
 std::string StringValue::format()
 {
-    return "\"" + m_value + "\"";
+
+    std::string string = "\"" + m_value + "\"";
+#if DEBUG_TYPE == true
+    string += " (string)";
+#endif
+    return string;
 }
 
 // Array
@@ -350,5 +366,93 @@ std::ostream& operator << (std::ostream& o, const JsonObject& j)
     return o << j.format();
 }
 
+// Parsing
+bool parseBool(std::string& input, JsonObject& result)
+{
+    if (input == "true")
+    {
+        result = JsonObject(true);
+        return true;
+    }
+    if (input == "false")
+    {
+        result = false;
+        return true;
+    }
+    return false;
+};
+
+bool parseInt(std::string& input, JsonObject& result)
+{
+    if (input.find(".") != std::string::npos)
+    {
+        return false;
+    }
+    try
+    {
+        result = JsonObject(std::stoi(input));
+        return true;
+    }
+    catch (std::invalid_argument& e)
+    {
+        return false;
+    }
+}
+
+bool parseDouble(std::string& input, JsonObject& result)
+{
+    try
+    {
+        result = JsonObject(std::stod(input));
+        return true;
+    }
+    catch (std::invalid_argument& e)
+    {
+        return false;
+    }
+}
+
+bool parseArray(std::string& input, JsonObject& result)
+{
+    if (!input.starts_with("[") && !input.ends_with("]"))
+    {
+        return false;
+    }
+    std::string d(input);
+    result = JsonObject(d);
+    return true;
+}
+
+bool parseDict(std::string& input, JsonObject& result)
+{
+    if (!input.starts_with("{") && !input.ends_with("}"))
+    {
+        return false;
+    }
+    std::string d(input);
+    result = JsonObject(d);
+    return true;
+}
+
+JsonObject& loadFile(std::string filename)
+{
+    // Read file contents
+    std::ifstream file(filename);    //taking file as inputstream
+    std::string data;
+    if (file)
+    {
+        std::ostringstream stream;      // New stream
+        stream << file.rdbuf();         // Reading data
+        data = stream.str();            // Put stream to data string
+    }
+
+    // Tokenize string
+    Lexer* l = new Lexer(data);
+
+    // Parse string into JSON object
+    Parser* p = new Parser(l);
+
+    return p->get();
+}
 
 JSON_NAMESPACE_CLOSE
