@@ -366,7 +366,7 @@ std::ostream& operator << (std::ostream& o, const JsonObject& j)
     return o << j.format();
 }
 
-JsonObject& loadFile(std::string filename)
+JsonObject loadFile(std::string filename)
 {
     // Read file contents
     std::ifstream file(filename);    //taking file as inputstream
@@ -380,8 +380,7 @@ JsonObject& loadFile(std::string filename)
     else
     {
         std::cout << "File " << filename << " not found." << std::endl;
-        JsonObject j;
-        return j;
+        return JsonObject();
     }
 
     // Tokenize string
@@ -389,18 +388,16 @@ JsonObject& loadFile(std::string filename)
 
     // Parse string into JSON object
     Parser* p = new Parser(l);
-
     return p->get();
 }
 
-JsonObject& loadString(std::string string)
+JsonObject loadString(std::string string)
 {
     // Tokenize string
     Lexer* l = new Lexer(string);
 
     // Parse string into JSON object
     Parser* p = new Parser(l);
-
     return p->get();
 }
 

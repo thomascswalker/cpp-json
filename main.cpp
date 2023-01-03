@@ -12,7 +12,9 @@ int main()
     JsonObject largeJson = loadFile("large.json");
     std::cout << "Large JSON:\n" << largeJson << std::endl << std::endl;
 
-    JsonObject stringJson = loadString("{\"fruits\":[\"apple\",\"orange\",\"pear\"]}");
+    std::string string("{\"fruits\":[\"apple\",\"orange\",\"pear\"]}");
+    JsonObject stringJson = loadString(string);
+    std::cout << "Raw String: " << string << std::endl;
     std::cout << "String JSON:\n" << stringJson << std::endl << std::endl;
 
     return 0;

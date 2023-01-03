@@ -7,15 +7,15 @@
 #define JSON_NAMESPACE_CLOSE }
 #define JSON_NAMESPACE_USING using namespace JSON;
 
-#define IS_NUMBER(x) (((x - 48) | (57 - x)) >= 0 || x == 46)
-#define IS_QUOTE(x) x == 34
+#define IS_NUMBER(x)    (((x - 48) | (57 - x)) >= 0 || x == 46)
+#define IS_QUOTE(x)     x == 34
 #define IS_NOT_QUOTE(x) x != 34
-#define IS_COMMA(x) x == 44
-#define IS_LBRACE(x) x == 91
-#define IS_RBRACE(x) x == 93
-#define IS_LBRACKET(x) x == 123
-#define IS_RBRACKET(x) x == 125
-#define IS_COLON(x) x == 58
+#define IS_COMMA(x)     x == 44
+#define IS_LBRACE(x)    x == 91
+#define IS_RBRACE(x)    x == 93
+#define IS_LBRACKET(x)  x == 123
+#define IS_RBRACKET(x)  x == 125
+#define IS_COLON(x)     x == 58
 
 #include <fstream>
 #include <iostream>
@@ -43,8 +43,8 @@ class Parser;
 std::string getIndent(int indent);
 std::string formatLine(const std::string& value, int indent, bool end);
 std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
-JsonObject& loadFile(std::string filename);
-JsonObject& loadString(std::string string);
+JsonObject loadFile(std::string filename);
+JsonObject loadString(std::string string);
 
 std::ostream& operator << (std::ostream& o, JsonArray& a);
 std::ostream& operator << (std::ostream& o, JsonDict& d);
