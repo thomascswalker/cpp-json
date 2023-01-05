@@ -138,7 +138,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json.h" />
-    <ClInclude Include="parser.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="complex.json" />
