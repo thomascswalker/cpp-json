@@ -133,11 +133,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="json.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="json.h" />
+    <ClInclude Include="json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="complex.json" />
