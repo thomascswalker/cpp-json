@@ -6,10 +6,20 @@ int main()
 {
     std::string filename("..\\examples\\gltf.json");
     JsonObject jsonFile = loadFile(filename);
-    std::cout << jsonFile << std::endl;
 
-    std::string string("{\"test\":5}");
-    JsonObject jsonString = loadString(string);
-    std::cout << jsonString << std::endl;
+    JsonObject buffers = jsonFile["bufferViews"];
+
+    std::cout << "Buffer 0" << std::endl;
+    std::cout << buffers[0]["buffer"] << std::endl;
+    std::cout << buffers[0]["byteOffset"] << std::endl;
+    std::cout << buffers[0]["byteLength"] << std::endl;
+    std::cout << buffers[0]["target"] << "\n" << std::endl;
+
+    std::cout << "Buffer 1" << std::endl;
+    std::cout << buffers[1]["buffer"] << std::endl;
+    std::cout << buffers[1]["byteOffset"] << std::endl;
+    std::cout << buffers[1]["byteLength"] << std::endl;
+    std::cout << buffers[1]["target"] << std::endl;
+
     return 0;
 }

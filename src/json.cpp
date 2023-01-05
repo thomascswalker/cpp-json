@@ -22,7 +22,8 @@ namespace JSON
         return line;
     }
 
-    std::string formatLine(const std::string& key, const std::string& value, int indent, bool end)
+    std::string formatLine(const std::string& key, const std::string& value,
+        int indent, bool end)
     {
         std::string line;
         line += getIndent(indent);
@@ -35,29 +36,29 @@ namespace JSON
         return line;
     }
 
-    // General operators
-    std::ostream& operator << (std::ostream& o, JsonArray& a)
+// General operators
+    std::ostream& operator<<(std::ostream& o, JsonArray& a)
     {
         return o << JsonObject(a).format();
     }
 
-    std::ostream& operator << (std::ostream& o, JsonDict& d)
+    std::ostream& operator<<(std::ostream& o, JsonDict& d)
     {
         return o << JsonObject(d).format();
     }
 
-    // NullType
+// NullType
     std::string NullValue::format()
     {
         return "NullType";
     }
 
-    std::ostream &NullValue::operator<<(std::ostream &o)
+    std::ostream& NullValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    // Bool
+// Bool
     bool BoolValue::value() const
     {
         return m_value;
@@ -66,23 +67,23 @@ namespace JSON
     std::string BoolValue::format()
     {
         std::string boolString(m_value ? std::string("true") : std::string("false"));
-    #if DEBUG_TYPE == true
+#if DEBUG_TYPE == true
         boolString += " (bool)";
-    #endif
+#endif
         return boolString;
     }
 
-    std::ostream &BoolValue::operator<<(std::ostream &o)
+    std::ostream& BoolValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    BoolValue::BoolValue(const BoolValue &other)
+    BoolValue::BoolValue(const BoolValue& other)
     {
         *this = other;
     }
 
-    // Int
+// Int
     int IntValue::value() const
     {
         return m_value;
@@ -91,23 +92,23 @@ namespace JSON
     std::string IntValue::format()
     {
         std::string intString = std::to_string(m_value);
-    #if DEBUG_TYPE == true
+#if DEBUG_TYPE == true
         intString += " (int)";
-    #endif
+#endif
         return intString;
     }
 
-    IntValue::IntValue(const IntValue &other)
+    IntValue::IntValue(const IntValue& other)
     {
         *this = other;
     }
 
-    std::ostream &IntValue::operator<<(std::ostream &o)
+    std::ostream& IntValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    // Double
+// Double
     double DoubleValue::value() const
     {
         return m_value;
@@ -116,23 +117,23 @@ namespace JSON
     std::string DoubleValue::format()
     {
         std::string doubleString = std::to_string(m_value);
-    #if DEBUG_TYPE == true
+#if DEBUG_TYPE == true
         doubleString += " (double)";
-    #endif
+#endif
         return doubleString;
     }
 
-    DoubleValue::DoubleValue(const DoubleValue &other)
+    DoubleValue::DoubleValue(const DoubleValue& other)
     {
         *this = other;
     }
 
-    std::ostream &DoubleValue::operator<<(std::ostream &o)
+    std::ostream& DoubleValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    // StringType
+// StringType
     std::string StringValue::value()
     {
         return m_value;
@@ -142,23 +143,23 @@ namespace JSON
     {
 
         std::string string = "\"" + m_value + "\"";
-    #if DEBUG_TYPE == true
+#if DEBUG_TYPE == true
         string += " (string)";
-    #endif
+#endif
         return string;
     }
 
-    StringValue::StringValue(const StringValue &other)
+    StringValue::StringValue(const StringValue& other)
     {
         *this = other;
     }
 
-    std::ostream &StringValue::operator<<(std::ostream &o)
+    std::ostream& StringValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    // Array
+// Array
     ArrayValue::ArrayValue(const JsonArray& value)
     {
         m_value.clear();
@@ -189,7 +190,7 @@ namespace JSON
         return arrayString;
     }
 
-    // Dictionary
+// Dictionary
     DictValue::DictValue(const JsonDict& value)
     {
         for (const auto& [k, v] : value)
@@ -211,7 +212,9 @@ namespace JSON
         for (auto& [k, v] : m_value)
         {
             bool at_end = (count == m_value.size());
-            std::string new_line = (v.type() == Dictionary || v.type() == Array) ? ("\n" + getIndent(CURRENT_INDENT)) : "";
+            std::string new_line = (v.type() == Dictionary || v.type() == Array)
+                                   ? ("\n" + getIndent(CURRENT_INDENT))
+                                   : "";
             dictString += formatLine(k, new_line + v.format(), CURRENT_INDENT, at_end);
             count++;
         }
@@ -226,37 +229,43 @@ namespace JSON
         m_value = nullptr;
         m_type = EValueType::Null;
     }
+
     JsonObject::JsonObject(const JsonObject& other)
     {
         *this = other;
         m_type = other.m_type;
     }
+
     JsonObject::JsonObject(bool value)
     {
         m_value = std::make_unique<BoolValue>(value);
         m_type = Bool;
     }
+
     JsonObject::JsonObject(int value)
     {
         m_value = std::make_unique<IntValue>(value);
         m_type = Int;
     }
+
     JsonObject::JsonObject(double value)
     {
         m_value = std::make_unique<DoubleValue>(value);
         m_type = Double;
     }
+
     JsonObject::JsonObject(const std::string& value)
     {
         m_value = std::make_unique<StringValue>(value);
         m_type = EValueType::String;
     }
+
     JsonObject::JsonObject(const JsonArray& value)
     {
-
         m_value = std::make_unique<ArrayValue>(value);
         m_type = Array;
     }
+
     JsonObject::JsonObject(const JsonDict& value)
     {
         m_value = std::make_unique<DictValue>(value);
@@ -333,44 +342,44 @@ namespace JSON
         return m_value->format();
     }
 
-    JsonObject& JsonObject::operator = (const JsonObject& other)
+    JsonObject& JsonObject::operator=(const JsonObject& other)
     {
         switch (other.m_type)
         {
-            case (Bool):
-            {
-                m_value = std::make_unique<BoolValue>(other.getBool());
-                break;
-            }
-            case (Int):
-            {
-                m_value = std::make_unique<IntValue>(other.getInt());
-                break;
-            }
-            case (Double):
-            {
-                m_value = std::make_unique<DoubleValue>(other.getDouble());
-                break;
-            }
-            case (String):
-            {
-                m_value = std::make_unique<StringValue>(other.getString());
-                break;
-            }
-            case (Array):
-            {
-                m_value = std::make_unique<ArrayValue>(other.getArray());
-                break;
-            }
-            case (Dictionary):
-            {
-                m_value = std::make_unique<DictValue>(other.getDict());
-                break;
-            }
-            default:
-            {
-                break;
-            }
+        case (Bool):
+        {
+            m_value = std::make_unique<BoolValue>(other.getBool());
+            break;
+        }
+        case (Int):
+        {
+            m_value = std::make_unique<IntValue>(other.getInt());
+            break;
+        }
+        case (Double):
+        {
+            m_value = std::make_unique<DoubleValue>(other.getDouble());
+            break;
+        }
+        case (String):
+        {
+            m_value = std::make_unique<StringValue>(other.getString());
+            break;
+        }
+        case (Array):
+        {
+            m_value = std::make_unique<ArrayValue>(other.getArray());
+            break;
+        }
+        case (Dictionary):
+        {
+            m_value = std::make_unique<DictValue>(other.getDict());
+            break;
+        }
+        default:
+        {
+            break;
+        }
         }
         m_type = other.m_type;
         return *this;
@@ -387,7 +396,6 @@ namespace JSON
 
     JsonObject& JsonObject::operator[](int index)
     {
-        std::cout << m_type << std::endl;
         if (m_type != Array)
         {
             throw std::runtime_error("Invalid type, wanted Array");
@@ -400,13 +408,13 @@ namespace JSON
         return o << a.format();
     }
 
-    ArrayValue &ArrayValue::operator=([[maybe_unused]] const ArrayValue &other)
+    ArrayValue& ArrayValue::operator=([[maybe_unused]] const ArrayValue& other)
     {
         this->m_value = other.m_value;
         return *this;
     }
 
-    JsonObject &ArrayValue::operator[]([[maybe_unused]] const int index)
+    JsonObject& ArrayValue::operator[]([[maybe_unused]] const int index)
     {
         if (index > m_value.size())
         {
@@ -415,43 +423,43 @@ namespace JSON
         return m_value[index];
     }
 
-    std::ostream &ArrayValue::operator<<(std::ostream &o)
+    std::ostream& ArrayValue::operator<<(std::ostream& o)
     {
         return o << format();
     }
 
-    ArrayValue::ArrayValue(const ArrayValue &other)
+    ArrayValue::ArrayValue(const ArrayValue& other)
     {
         *this = other;
     }
 
-    std::ostream& operator << (std::ostream& o, DictValue& d)
+    std::ostream& operator<<(std::ostream& o, DictValue& d)
     {
         return o << d.format();
     }
 
-    DictValue::DictValue(const DictValue &other)
+    DictValue::DictValue(const DictValue& other)
     {
         *this = other;
     }
 
-    DictValue &DictValue::operator=([[maybe_unused]] const DictValue &other)
+    DictValue& DictValue::operator=([[maybe_unused]] const DictValue& other)
     {
         m_value = other.m_value;
         return *this;
     }
 
-    JsonObject &DictValue::operator[](const std::string &key)
+    JsonObject& DictValue::operator[](const std::string& key)
     {
         return m_value[key];
     }
 
-    std::ostream& operator << (std::ostream& o, JsonObject& j)
+    std::ostream& operator<<(std::ostream& o, JsonObject& j)
     {
         return o << j.format();
     }
 
-    std::ostream& operator << (std::ostream& o, const JsonObject& j)
+    std::ostream& operator<<(std::ostream& o, const JsonObject& j)
     {
         return o << j.format();
     }
@@ -459,13 +467,13 @@ namespace JSON
     JsonObject loadFile(const std::string& filename)
     {
         // Read file contents
-        std::ifstream file(filename);    // Loading file as input stream
+        std::ifstream file(filename); // Loading file as input stream
         std::string data;
         if (file)
         {
-            std::ostringstream stream;      // New stream
-            stream << file.rdbuf();         // Reading data
-            data = stream.str();            // Put stream to data string
+            std::ostringstream stream; // New stream
+            stream << file.rdbuf();    // Reading data
+            data = stream.str();       // Put stream to data string
         }
         else
         {
@@ -491,7 +499,7 @@ namespace JSON
     }
 
     // Lexer
-    std::string Lexer::sanitize(std::string &input)
+    std::string Lexer::sanitize(std::string& input)
     {
         std::string output;
 
@@ -611,7 +619,7 @@ namespace JSON
             return token;
         }
 
-        // NullType
+        // Null
         if (m_string.substr(m_offset, 4) == "null")
         {
             m_offset += 4;
@@ -663,7 +671,7 @@ namespace JSON
         }
 
         // In all other instances, we have a malformed JSON file. Throw an error.
-        std::string msg(&"Invalid character " [ m_string[m_offset]]);
+        std::string msg(&"Invalid character "[m_string[m_offset]]);
         throw std::runtime_error(msg);
     }
 
@@ -676,137 +684,141 @@ namespace JSON
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
+
     JsonObject Parser::parse()
     {
         // NullType
         switch (current->type)
         {
-            case (EValueType::Null):
+        case (EValueType::Null):
+        {
+            next(); // Go to next token
+            return {};
+        }
+
+            // Booleans
+        case (EValueType::Bool):
+        {
+            std::string value = current->value;
+            next(); // Go to next token
+            return (value == "true" ? JsonObject(true) : JsonObject(false));
+        }
+
+            // Numbers
+        case (EValueType::Number):
+        {
+            std::string value = current->value;
+            next(); // Go to next token
+            // Decimal values
+            if (value.find('.') != std::string::npos)
             {
-                next(); // Go to next token
-                return {};
+                return JsonObject(std::stod(value));
             }
-
-                // Booleans
-            case (EValueType::Bool):
+                // Integer values
+            else
             {
-                std::string value = current->value;
-                next(); // Go to next token
-                return (value == "true" ? JsonObject(true) : JsonObject(false));
-            }
-
-                // Numbers
-            case (EValueType::Number):
-            {
-                std::string value = current->value;
-                next(); // Go to next token
-                // Decimal values
-                if (value.find('.') != std::string::npos)
-                {
-                    return JsonObject(std::stod(value));
-                }
-                    // Integer values
-                else
-                {
-                    return JsonObject(std::stoi(value));
-                }
-            }
-
-                // Strings
-            case (EValueType::String):
-            {
-                std::string value = current->value;
-                next(); // Go to next token
-                return JsonObject(value);
-            }
-
-                // Arrays
-            case (EValueType::LBrace):
-            {
-                next();  // Skip start brace
-                JsonArray array;
-                while (current->type != EValueType::RBrace)
-                {
-                    // Skip commas
-                    if (current->type == EValueType::Comma)
-                    {
-                        next(); // Go to next token
-                        continue;
-                    }
-                    JsonObject value = parse(); // Recursively parse value
-
-                    // TODO: Figure out why this is needed, otherwise it breaks
-                    if (value.type() == EValueType::Null)
-                    {
-                        break;
-                    }
-
-                    // Add to our array the value we parsed
-                    array.push_back(value);
-                }
-
-                next(); // Skip end brace
-                return JsonObject(array);
-            }
-
-                // Dictionaries
-            case (EValueType::LBracket):
-            {
-                next();  // Skip start bracket
-                JsonDict dict;
-
-                while (current->type != EValueType::RBracket &&
-                       current->type > 0)
-                {
-                    // Parse key
-                    if (current->type != EValueType::String)
-                    {
-                        throw std::runtime_error("Expected string key");
-                    }
-                    std::string key = current->value;
-                    next(); // Move from key to expected colon
-
-                    // Parse value
-                    if (current->type != EValueType::Colon)
-                    {
-                        throw std::runtime_error("Expected colon");
-                    }
-                    next(); // Move from colon to expected value
-
-                    // Construct dict obj
-                    JsonObject value = parse(); // Recursively parse value
-                    dict[key] = value;
-
-                    // If there's a comma, skip it
-                    if (current->type == EValueType::Comma)
-                    {
-                        next();
-                        continue;
-                    }
-                    // If we're at the end of the dictionary, break the loop
-                    if (current->type == EValueType::RBracket)
-                    {
-                        break;
-                    }
-                }
-
-                next(); // Skip end bracket
-                return JsonObject(dict);
-            }
-
-            default:
-            {
-                throw std::runtime_error("Unable to parse!");
+                return JsonObject(std::stoi(value));
             }
         }
+
+            // Strings
+        case (EValueType::String):
+        {
+            std::string value = current->value;
+            next(); // Go to next token
+            return JsonObject(value);
+        }
+
+            // Arrays
+        case (EValueType::LBrace):
+        {
+            next(); // Skip start brace
+            JsonArray array;
+            while (current->type != EValueType::RBrace)
+            {
+                // Skip commas
+                if (current->type == EValueType::Comma)
+                {
+                    next(); // Go to next token
+                    continue;
+                }
+                JsonObject value = parse(); // Recursively parse value
+
+                // TODO: Figure out why this is needed, otherwise it breaks
+                if (value.type() == EValueType::Null)
+                {
+                    break;
+                }
+
+                // Add to our array the value we parsed
+                array.push_back(value);
+            }
+
+            next(); // Skip end brace
+            return JsonObject(array);
+        }
+
+            // Dictionaries
+        case (EValueType::LBracket):
+        {
+            next(); // Skip start bracket
+            JsonDict dict;
+
+            while (current->type != EValueType::RBracket && current->type > 0)
+            {
+                // Parse key
+                if (current->type != EValueType::String)
+                {
+                    throw std::runtime_error("Expected string key");
+                }
+                std::string key = current->value;
+                next(); // Move from key to expected colon
+
+                // Parse value
+                if (current->type != EValueType::Colon)
+                {
+                    throw std::runtime_error("Expected colon");
+                }
+                next(); // Move from colon to expected value
+
+                // Construct dict obj
+                JsonObject value = parse(); // Recursively parse value
+                dict[key] = value;
+
+                // If there's a comma, skip it
+                if (current->type == EValueType::Comma)
+                {
+                    next();
+                    continue;
+                }
+                // If we're at the end of the dictionary, break the loop
+                if (current->type == EValueType::RBracket)
+                {
+                    break;
+                }
+            }
+
+            next(); // Skip end bracket
+            return JsonObject(dict);
+        }
+
+        default:
+        {
+            throw std::runtime_error("Unable to parse!");
+        }
+        }
     }
+
 #pragma clang diagnostic pop
 
-    Parser::Parser(Lexer *lexer)
-            : m_lexer(lexer)
+    Parser::Parser(Lexer* lexer) : m_lexer(lexer)
     {
         current = &m_lexer->tokens[0];
         m_json = parse();
     }
-    JsonObject &Parser::get() { return m_json; }
-}
+
+    JsonObject& Parser::get()
+    {
+        return m_json;
+    }
+} // namespace JSON
