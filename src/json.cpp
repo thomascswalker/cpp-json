@@ -400,13 +400,13 @@ namespace JSON
         return o << a.format();
     }
 
-    ArrayValue &ArrayValue::operator=(const ArrayValue &other)
+    ArrayValue &ArrayValue::operator=([[maybe_unused]] const ArrayValue &other)
     {
         this->m_value = other.m_value;
         return *this;
     }
 
-    JsonObject &ArrayValue::operator[](const int index)
+    JsonObject &ArrayValue::operator[]([[maybe_unused]] const int index)
     {
         if (index > m_value.size())
         {
@@ -435,7 +435,7 @@ namespace JSON
         *this = other;
     }
 
-    DictValue &DictValue::operator=(const DictValue &other)
+    DictValue &DictValue::operator=([[maybe_unused]] const DictValue &other)
     {
         m_value = other.m_value;
         return *this;

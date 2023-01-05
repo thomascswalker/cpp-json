@@ -35,20 +35,12 @@ namespace JSON
     class Lexer;
     class Parser;
 
+
     std::string getIndent(int indent);
     std::string formatLine(const std::string& value, int indent, bool end);
     std::string formatLine(const std::string& key, const std::string& value, int indent, bool end);
 
-    /// Load the given file as a JsonObject.
-    /// \param filename The full .json filename.
-    /// \return The JsonObject equivalent of the contents of the file.
     JsonObject loadFile(const std::string& filename);
-
-    /// <summary>
-    /// Load the given string as a JsonObject.
-    /// </summary>
-    /// <param name="string">The formatted JSON string.</param>
-    /// <returns>The JsonObject equivalent of the JSON string.</returns>
     JsonObject loadString(std::string& string);
 
     std::ostream& operator << (std::ostream& o, JsonArray& a);
@@ -186,7 +178,7 @@ namespace JSON
         JsonArray value();
         std::string format() override;
 
-        ArrayValue &operator=(const ArrayValue& other);
+        ArrayValue &operator=([[maybe_unused]] const ArrayValue& other);
         JsonObject &operator[](int index);
         std::ostream& operator << (std::ostream& o);
         friend std::ostream& operator << (std::ostream& o, ArrayValue& a);
@@ -206,7 +198,7 @@ namespace JSON
         JsonDict value();
         std::string format() override;
 
-        DictValue& operator = (const DictValue& other);
+        DictValue& operator = ([[maybe_unused]] const DictValue& other);
         JsonObject& operator [] (const std::string& key);
         friend std::ostream& operator << (std::ostream& o, DictValue& d);
     };
