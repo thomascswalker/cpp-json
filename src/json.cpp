@@ -391,6 +391,9 @@ namespace JSON
         {
             throw std::runtime_error("Invalid type, wanted Dictionary");
         }
+        if (!hasKey(key)) {
+            throw std::runtime_error("Missing key: " + key);
+        }
         return asDict()[key];
     }
 
@@ -399,6 +402,9 @@ namespace JSON
         if (m_type != Array)
         {
             throw std::runtime_error("Invalid type, wanted Array");
+        }
+        if (size() < index) {
+            throw std::runtime_error("Index out of bounds: " + std::to_string(index));
         }
         return asArray()[index];
     }
@@ -433,6 +439,10 @@ namespace JSON
         *this = other;
     }
 
+    JsonArray *ArrayValue::ptr() {
+        return &m_value;
+    }
+
     std::ostream& operator<<(std::ostream& o, DictValue& d)
     {
         return o << d.format();
@@ -441,6 +451,31 @@ namespace JSON
     DictValue::DictValue(const DictValue& other)
     {
         *this = other;
+    }
+
+    size_t JsonObject::size()
+    {
+        if (m_type == Array)
+        {
+            auto a = asArray();
+            return a.value().size();
+        }
+        if (m_type == Dictionary)
+        {
+            auto a = asDict();
+            return a.value().size();
+        }
+
+        throw std::runtime_error("No size accessor for this JSON object type.");
+    }
+
+    bool JsonObject::hasKey(const std::string &key) {
+        if (m_type != Dictionary)
+        {
+            throw std::runtime_error("JsonObject is not a Dictionary.");
+        }
+        auto d = asDict().value();
+        return d.count(key) != 0;
     }
 
     DictValue& DictValue::operator=([[maybe_unused]] const DictValue& other)
@@ -454,6 +489,10 @@ namespace JSON
         return m_value[key];
     }
 
+    JsonDict *DictValue::ptr() {
+        return &m_value;
+    }
+
     std::ostream& operator<<(std::ostream& o, JsonObject& j)
     {
         return o << j.format();
@@ -462,6 +501,49 @@ namespace JSON
     std::ostream& operator<<(std::ostream& o, const JsonObject& j)
     {
         return o << j.format();
+    }
+
+
+    JsonObject::operator bool() const {
+        if (m_type != Bool) {
+            throw std::runtime_error("Cannot implicitly convert to bool.");
+        }
+        return asBool().value();
+    }
+
+    JsonObject::operator int() const {
+        if (m_type != Int) {
+            throw std::runtime_error("Cannot implicitly convert to int.");
+        }
+        return asInt().value();
+    }
+
+    JsonObject::operator double() const {
+        if (m_type != Double) {
+            throw std::runtime_error("Cannot implicitly convert to double.");
+        }
+        return asDouble().value();
+    }
+
+    JsonObject::operator std::string() const {
+        if (m_type != String) {
+            throw std::runtime_error("Cannot implicitly convert to std::string.");
+        }
+        return asString().value();
+    }
+
+    JsonObject::operator JsonArray() const {
+        if (m_type != Array) {
+            throw std::runtime_error("Cannot implicitly convert to JsonArray.");
+        }
+        return asArray().value();
+    }
+
+    JsonObject::operator JsonDict() const {
+        if (m_type != Dictionary) {
+            throw std::runtime_error("Cannot implicitly convert to JsonDict.");
+        }
+        return asDict().value();
     }
 
     JsonObject loadFile(const std::string& filename)
